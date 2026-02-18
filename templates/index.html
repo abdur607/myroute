@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MyRoute | Smarter, Greener Travel</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg:        #06080f;
+      --surface:   #0d1220;
+      --surface2:  #121929;
+      --border:    rgba(100,180,255,0.10);
+      --border2:   rgba(100,180,255,0.20);
+      --accent:    #00d4ff;
+      --accent2:   #7c5cfc;
+      --eco:       #00e5a0;
+      --text:      #e8f0ff;
+      --muted:     #6a7a9b;
+      --card-glow: 0 0 40px rgba(0,212,255,0.06);
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background:var(--bg);color:var(--text);font-family:'Space Grotesk',sans-serif;min-height:100vh;overflow-x:hidden; }
+
+    .bg-grid { position:fixed;inset:0;z-index:0;background-image:linear-gradient(rgba(0,212,255,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(0,212,255,0.03) 1px,transparent 1px);background-size:48px 48px;pointer-events:none; }
+    .bg-orb  { position:fixed;border-radius:50%;filter:blur(90px);pointer-events:none;z-index:0; }
+    .bg-orb-1{ width:500px;height:500px;background:radial-gradient(circle,rgba(0,212,255,0.08) 0%,transparent 70%);top:-120px;left:-120px; }
+    .bg-orb-2{ width:600px;height:600px;background:radial-gradient(circle,rgba(124,92,252,0.07) 0%,transparent 70%);bottom:-150px;right:-150px; }
+    .bg-orb-3{ width:350px;height:350px;background:radial-gradient(circle,rgba(0,229,160,0.05) 0%,transparent 70%);top:40%;left:50%;transform:translate(-50%,-50%); }
+
+    .page-wrap { position:relative;z-index:1;min-height:100vh;display:grid;grid-template-columns:1fr 1fr;max-width:1440px;margin:0 auto; }
+
+    /* Hero */
+    .hero { display:flex;flex-direction:column;justify-content:center;padding:60px 70px 60px 60px; }
+    .logo-mark  { display:inline-flex;align-items:center;gap:10px;margin-bottom:56px; }
+    .logo-icon  { width:36px;height:36px;background:linear-gradient(135deg,var(--accent),var(--accent2));border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px; }
+    .logo-text  { font-family:'DM Mono',monospace;font-size:18px;font-weight:500;letter-spacing:.04em;color:var(--text); }
+    .hero-eyebrow { font-family:'DM Mono',monospace;font-size:12px;font-weight:400;letter-spacing:.15em;text-transform:uppercase;color:var(--accent);margin-bottom:20px; }
+    .hero-title { font-size:clamp(38px,4vw,60px);font-weight:700;line-height:1.08;letter-spacing:-1.5px;margin-bottom:24px; }
+    .hero-title .line-2 { background:linear-gradient(90deg,var(--accent),var(--eco));-webkit-background-clip:text;-webkit-text-fill-color:transparent; }
+    .hero-sub   { font-size:17px;line-height:1.7;color:var(--muted);max-width:440px;margin-bottom:56px; }
+    .features   { display:flex;flex-direction:column;gap:16px; }
+    .feature    { display:flex;align-items:flex-start;gap:14px; }
+    .feature-icon { width:36px;height:36px;flex-shrink:0;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px; }
+    .feature-text h4 { font-size:14px;font-weight:600;margin-bottom:2px; }
+    .feature-text p  { font-size:13px;color:var(--muted);line-height:1.5; }
+
+    /* Form panel */
+    .form-panel { display:flex;align-items:center;justify-content:center;padding:60px 60px 60px 20px; }
+    .card {
+      background:var(--surface);border:1px solid var(--border2);border-radius:24px;
+      padding:40px 36px;width:100%;max-width:460px;
+      box-shadow:var(--card-glow),0 24px 60px rgba(0,0,0,0.4);
+      position:relative;
+      /* overflow must be visible so dropdown can escape the card */
+      overflow:visible;
+    }
+    .card::before { content:'';position:absolute;top:0;left:0;right:0;height:1px;border-radius:24px 24px 0 0;background:linear-gradient(90deg,transparent,var(--accent),var(--accent2),transparent); }
+    .card-header { margin-bottom:32px; }
+    .card-header h2 { font-size:22px;font-weight:700;letter-spacing:-.5px;margin-bottom:6px; }
+    .card-header p  { font-size:14px;color:var(--muted); }
+
+    .form-section { margin-bottom:24px; }
+    .section-label { font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:10px;display:block; }
+    .field { margin-bottom:12px;position:relative; }
+    .field-icon { position:absolute;left:14px;top:50%;transform:translateY(-50%);font-size:15px;pointer-events:none;z-index:2; }
+
+    input, select {
+      width:100%;padding:13px 14px 13px 40px;background:var(--surface2);border:1px solid var(--border);
+      border-radius:12px;color:var(--text);font-family:'Space Grotesk',sans-serif;font-size:14px;
+      outline:none;transition:border-color .2s,box-shadow .2s;-webkit-appearance:none;
+    }
+    input::placeholder { color:var(--muted); }
+    input:focus, select:focus { border-color:var(--accent);box-shadow:0 0 0 3px rgba(0,212,255,.10); }
+    select {
+      background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='7' fill='none'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236a7a9b' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+      background-repeat:no-repeat;background-position:right 14px center;padding-right:36px;cursor:pointer;
+    }
+    option { background:#1a2333; }
+    .grid-2 { display:grid;grid-template-columns:1fr 1fr;gap:10px; }
+
+    /* ── Autocomplete ── */
+    .autocomplete-wrap { position:relative; }
+    .ac-list {
+      display:none;position:absolute;top:calc(100% + 5px);left:0;right:0;z-index:9999;
+      background:var(--surface2);border:1px solid var(--border2);border-radius:12px;
+      list-style:none;overflow:hidden;box-shadow:0 16px 40px rgba(0,0,0,0.6);
+      max-height:256px;overflow-y:auto;
+    }
+    .ac-list.open { display:block; }
+    .ac-list li { padding:11px 14px;cursor:pointer;border-bottom:1px solid var(--border);transition:background .12s;font-size:13px;line-height:1.4; }
+    .ac-list li:last-child { border-bottom:none; }
+    .ac-list li:hover, .ac-list li.highlighted { background:rgba(0,212,255,.09); }
+    .ac-short { font-weight:600;color:var(--text);margin-bottom:1px; }
+    .ac-full  { font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis; }
+    .ac-coords { font-family:'DM Mono',monospace;font-size:10px;color:var(--accent);margin-top:1px; }
+
+    /* Green tick when location confirmed via autocomplete */
+    .field-confirmed input { border-color:var(--eco) !important; }
+    .field-confirmed .confirm-tick { display:block; }
+    .confirm-tick { display:none;position:absolute;right:12px;top:50%;transform:translateY(-50%);color:var(--eco);font-size:15px;font-weight:700;pointer-events:none;z-index:3; }
+
+    /* Vehicle preview */
+    .vehicle-preview { background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-top:6px;display:none; }
+    .vehicle-preview.show { display:block; }
+    .vehicle-preview .vp-name { font-size:13px;font-weight:600;margin-bottom:8px; }
+    .vp-specs { display:grid;grid-template-columns:repeat(3,1fr);gap:6px; }
+    .vp-spec  { text-align:center; }
+    .vp-spec .val { font-family:'DM Mono',monospace;font-size:14px;font-weight:500;color:var(--accent); }
+    .vp-spec .lbl { font-size:10px;color:var(--muted);margin-top:1px; }
+
+    /* Divider */
+    .divider { display:flex;align-items:center;gap:10px;margin:20px 0; }
+    .divider::before,.divider::after { content:'';flex:1;height:1px;background:var(--border); }
+    .divider span { font-size:11px;color:var(--muted);font-family:'DM Mono',monospace;white-space:nowrap; }
+
+    /* Submit */
+    .btn-submit {
+      width:100%;padding:15px;border:none;border-radius:12px;
+      font-family:'Space Grotesk',sans-serif;font-size:15px;font-weight:600;color:var(--bg);
+      background:linear-gradient(90deg,var(--accent) 0%,var(--eco) 100%);
+      cursor:pointer;position:relative;overflow:hidden;transition:transform .2s,box-shadow .2s;
+      box-shadow:0 0 24px rgba(0,212,255,.25);
+    }
+    .btn-submit:hover { transform:translateY(-2px);box-shadow:0 4px 32px rgba(0,212,255,.40); }
+    .btn-submit:active { transform:translateY(0); }
+    .btn-submit .shimmer { position:absolute;top:0;left:-60%;width:40%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.3),transparent);animation:shimmer 2.5s infinite; }
+    @keyframes shimmer { 0%{left:-60%}100%{left:120%} }
+    .btn-inner { display:flex;align-items:center;justify-content:center;gap:8px;position:relative; }
+    .btn-submit.loading { pointer-events:none;opacity:.8; }
+    .spinner { display:none;width:16px;height:16px;border:2px solid rgba(6,8,15,.3);border-top-color:var(--bg);border-radius:50%;animation:spin .7s linear infinite; }
+    .btn-submit.loading .spinner { display:block; }
+    .btn-submit.loading .btn-text { display:none; }
+    @keyframes spin { to{transform:rotate(360deg)} }
+    .form-note { text-align:center;font-size:12px;color:var(--muted);margin-top:16px; }
+
+    /* Responsive */
+    @media(max-width:960px) {
+      .page-wrap{grid-template-columns:1fr;}
+      .hero{padding:50px 30px 30px;}
+      .hero-title{font-size:36px;}
+      .form-panel{padding:20px 30px 50px;}
+    }
+    @media(max-width:540px) {
+      .hero{padding:40px 20px 20px;}
+      .form-panel{padding:10px 16px 40px;}
+      .card{padding:28px 20px;border-radius:18px;}
+      .grid-2{grid-template-columns:1fr;}
+    }
+
+    .fade-up { opacity:0;transform:translateY(24px);animation:fadeUp .7s ease forwards; }
+    .fade-up:nth-child(1){animation-delay:.0s}.fade-up:nth-child(2){animation-delay:.1s}
+    .fade-up:nth-child(3){animation-delay:.2s}.fade-up:nth-child(4){animation-delay:.3s}
+    .fade-up:nth-child(5){animation-delay:.4s}
+    @keyframes fadeUp { to{opacity:1;transform:none} }
+  </style>
+</head>
+<body>
+  <div class="bg-grid"></div>
+  <div class="bg-orb bg-orb-1"></div>
+  <div class="bg-orb bg-orb-2"></div>
+  <div class="bg-orb bg-orb-3"></div>
+
+  <div class="page-wrap">
+    <!-- LEFT HERO -->
+    <div class="hero">
+      <div class="logo-mark fade-up">
+        <div class="logo-icon">🛣️</div>
+        <span class="logo-text">MyRoute</span>
+      </div>
+      <p class="hero-eyebrow fade-up">Physics-based route optimisation</p>
+      <h1 class="hero-title fade-up">Drive further.<br><span class="line-2">Burn less.</span></h1>
+      <p class="hero-sub fade-up">MyRoute models your exact car's aerodynamics, weight, rolling resistance, and engine efficiency to find the route that uses the least fuel — not just the fastest path.</p>
+      <div class="features">
+        <div class="feature fade-up">
+          <div class="feature-icon">⚙️</div>
+          <div class="feature-text"><h4>Real vehicle physics</h4><p>Drag coefficients, rolling resistance, and slope grades calculated per-segment.</p></div>
+        </div>
+        <div class="feature fade-up">
+          <div class="feature-icon">🏔️</div>
+          <div class="feature-text"><h4>Elevation-aware routing</h4><p>Uphills cost fuel; downhills regenerate (for EVs) or engine-brake efficiently.</p></div>
+        </div>
+        <div class="feature fade-up">
+          <div class="feature-icon">🌿</div>
+          <div class="feature-text"><h4>Three route types</h4><p>Eco, Fastest, and Balanced — compare CO₂, cost, and time side by side.</p></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT FORM -->
+    <div class="form-panel">
+      <div class="card">
+        <div class="card-header">
+          <h2>Plan Your Journey</h2>
+          <p>Enter your route and vehicle to get started.</p>
+        </div>
+
+        <form id="routeForm" action="/results" method="GET">
+          <!-- Hidden resolved coordinates — passed to backend to skip geocoding -->
+          <input type="hidden" name="start_lat" id="start_lat">
+          <input type="hidden" name="start_lon" id="start_lon">
+          <input type="hidden" name="end_lat"   id="end_lat">
+          <input type="hidden" name="end_lon"   id="end_lon">
+
+          <div class="form-section">
+            <span class="section-label">Route</span>
+
+            <div class="field autocomplete-wrap" id="field-start">
+              <span class="field-icon">📍</span>
+              <input type="text" name="start" id="start" placeholder="Starting location" required autocomplete="off">
+              <span class="confirm-tick">✓</span>
+              <ul class="ac-list" id="ac-start"></ul>
+            </div>
+
+            <div class="field autocomplete-wrap" id="field-end">
+              <span class="field-icon">🏁</span>
+              <input type="text" name="end" id="end" placeholder="Destination" required autocomplete="off">
+              <span class="confirm-tick">✓</span>
+              <ul class="ac-list" id="ac-end"></ul>
+            </div>
+          </div>
+
+          <div class="divider"><span>your vehicle</span></div>
+
+          <div class="form-section">
+            <span class="section-label">Make &amp; Model</span>
+            <div class="grid-2">
+              <div class="field">
+                <span class="field-icon">🚘</span>
+                <select name="make" id="makeSelect" required>
+                  <option value="" disabled selected>Make</option>
+                  {% for make in makes %}
+                  <option value="{{ make }}">{{ make }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+              <div class="field">
+                <span class="field-icon">🔖</span>
+                <select name="model" id="modelSelect" required>
+                  <option value="" disabled selected>Model</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="vehicle-preview" id="vehiclePreview">
+              <div class="vp-name" id="vpName">—</div>
+              <div class="vp-specs">
+                <div class="vp-spec"><div class="val" id="vpWeight">—</div><div class="lbl">Weight (kg)</div></div>
+                <div class="vp-spec"><div class="val" id="vpDrag">—</div><div class="lbl">Drag Cd</div></div>
+                <div class="vp-spec"><div class="val" id="vpEff">—</div><div class="lbl">Engine eff.</div></div>
+              </div>
+            </div>
+          </div>
+
+          <button type="submit" class="btn-submit" id="submitBtn">
+            <div class="shimmer"></div>
+            <div class="btn-inner">
+              <span class="btn-text">Find Optimal Routes →</span>
+              <div class="spinner"></div>
+            </div>
+          </button>
+        </form>
+
+        <p class="form-note">Powered by OpenRouteService &amp; real vehicle specs</p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+  // ─── AUTOCOMPLETE ENGINE ───────────────────────────────────────────────────
+  function makeAutocomplete(cfg) {
+    // cfg: { inputId, listId, latId, lonId, fieldId }
+    const input  = document.getElementById(cfg.inputId);
+    const list   = document.getElementById(cfg.listId);
+    const latEl  = document.getElementById(cfg.latId);
+    const lonEl  = document.getElementById(cfg.lonId);
+    const field  = document.getElementById(cfg.fieldId);
+
+    let debounceTimer = null;
+    let suggestions   = [];
+    let highlightIdx  = -1;
+    let locked        = false;  // true once user picked a result
+
+    const openList  = () => list.classList.add('open');
+    const closeList = () => { list.classList.remove('open'); highlightIdx = -1; };
+
+    function confirmLocation(lat, lon) {
+      latEl.value = lat;
+      lonEl.value = lon;
+      locked = true;
+      field.classList.add('field-confirmed');
+    }
+
+    function resetLock() {
+      latEl.value = '';
+      lonEl.value = '';
+      locked = false;
+      field.classList.remove('field-confirmed');
+    }
+
+    function updateHighlight() {
+      Array.from(list.children).forEach((li, i) =>
+        li.classList.toggle('highlighted', i === highlightIdx));
+    }
+
+    function pickItem(idx) {
+      const s = suggestions[idx];
+      if (!s) return;
+      input.value = s.short;
+      confirmLocation(s.lat, s.lon);
+      closeList();
+    }
+
+    function renderList(items) {
+      list.innerHTML = '';
+      highlightIdx = -1;
+      if (!items.length) { closeList(); return; }
+      suggestions = items;
+
+      items.forEach((s, i) => {
+        const li = document.createElement('li');
+        const truncFull = s.display.length > 90
+          ? s.display.slice(0, 90) + '…' : s.display;
+        li.innerHTML =
+          `<div class="ac-short">${escHtml(s.short)}</div>` +
+          `<div class="ac-full">${escHtml(truncFull)}</div>` +
+          `<div class="ac-coords">${s.lat.toFixed(5)}, ${s.lon.toFixed(5)}</div>`;
+        li.addEventListener('mousedown', e => { e.preventDefault(); pickItem(i); });
+        list.appendChild(li);
+      });
+      openList();
+    }
+
+    async function doSearch(q) {
+      try {
+        const res  = await fetch(`/api/autocomplete?q=${encodeURIComponent(q)}`);
+        const data = await res.json();
+        renderList(data);
+      } catch(err) {
+        console.error('Autocomplete error:', err);
+      }
+    }
+
+    // Keyboard navigation
+    input.addEventListener('keydown', e => {
+      if (!list.classList.contains('open')) return;
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        highlightIdx = Math.min(highlightIdx + 1, suggestions.length - 1);
+        updateHighlight();
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        highlightIdx = Math.max(highlightIdx - 1, 0);
+        updateHighlight();
+      } else if (e.key === 'Enter' && highlightIdx >= 0) {
+        e.preventDefault();
+        pickItem(highlightIdx);
+      } else if (e.key === 'Escape') {
+        closeList();
+      }
+    });
+
+    // Typing
+    input.addEventListener('input', () => {
+      resetLock();
+      const q = input.value.trim();
+      clearTimeout(debounceTimer);
+      if (q.length < 2) { closeList(); suggestions = []; return; }
+      // Debounce 300ms to avoid hammering Nominatim
+      debounceTimer = setTimeout(() => doSearch(q), 300);
+    });
+
+    // Re-open on focus if we have stale results
+    input.addEventListener('focus', () => {
+      if (suggestions.length && !locked) openList();
+    });
+
+    // Close on outside click
+    document.addEventListener('click', e => {
+      if (!field.contains(e.target)) closeList();
+    });
+  }
+
+  function escHtml(str) {
+    return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  makeAutocomplete({ inputId:'start', listId:'ac-start', latId:'start_lat', lonId:'start_lon', fieldId:'field-start' });
+  makeAutocomplete({ inputId:'end',   listId:'ac-end',   latId:'end_lat',   lonId:'end_lon',   fieldId:'field-end'   });
+
+  // ─── VEHICLE DROPDOWNS ────────────────────────────────────────────────────
+  const makeEl   = document.getElementById('makeSelect');
+  const modelEl  = document.getElementById('modelSelect');
+  const preview  = document.getElementById('vehiclePreview');
+  const vpName   = document.getElementById('vpName');
+  const vpWeight = document.getElementById('vpWeight');
+  const vpDrag   = document.getElementById('vpDrag');
+  const vpEff    = document.getElementById('vpEff');
+
+  makeEl.addEventListener('change', async () => {
+    modelEl.innerHTML = '<option value="" disabled selected>Loading…</option>';
+    preview.classList.remove('show');
+    const res    = await fetch(`/api/models?make=${encodeURIComponent(makeEl.value)}`);
+    const models = await res.json();
+    modelEl.innerHTML = '<option value="" disabled selected>Model</option>';
+    models.forEach(m => {
+      const opt = document.createElement('option');
+      opt.value = m; opt.textContent = m;
+      modelEl.appendChild(opt);
+    });
+  });
+
+  modelEl.addEventListener('change', async () => {
+    const make  = makeEl.value;
+    const model = modelEl.value;
+    if (!make || !model) return;
+    const res   = await fetch('/api/cars');
+    const data  = await res.json();
+    const specs = data[make]?.[model];
+    if (!specs) return;
+    vpName.textContent   = `${make} ${model}`;
+    vpWeight.textContent = specs.weight;
+    vpDrag.textContent   = specs.drag_coefficient;
+    vpEff.textContent    = (specs.efficiency * 100).toFixed(0) + '%';
+    preview.classList.add('show');
+  });
+
+  // ─── LOADING STATE ────────────────────────────────────────────────────────
+  document.getElementById('routeForm').addEventListener('submit', () => {
+    document.getElementById('submitBtn').classList.add('loading');
+  });
+  </script>
+</body>
+</html>

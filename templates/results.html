@@ -1,0 +1,728 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Route Results | MyRoute</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+  <style>
+    :root {
+      --bg:      #06080f;
+      --surface: #0d1220;
+      --surface2:#121929;
+      --border:  rgba(100,180,255,0.10);
+      --border2: rgba(100,180,255,0.18);
+      --accent:  #00d4ff;
+      --accent2: #7c5cfc;
+      --eco:     #00e5a0;
+      --fast:    #ff9f43;
+      --text:    #e8f0ff;
+      --muted:   #6a7a9b;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: var(--bg); color: var(--text); font-family: 'Space Grotesk', sans-serif; min-height: 100vh; }
+
+    .bg-grid {
+      position: fixed; inset: 0; z-index: 0; pointer-events: none;
+      background-image:
+        linear-gradient(rgba(0,212,255,0.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,212,255,0.025) 1px, transparent 1px);
+      background-size: 48px 48px;
+    }
+
+    .page { position: relative; z-index: 1; max-width: 1360px; margin: 0 auto; padding: 28px 24px 60px; }
+
+    /* ── Topbar ── */
+    .topbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 28px; flex-wrap: wrap; gap: 10px; }
+    .logo-mark { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+    .logo-icon { width: 34px; height: 34px; background: linear-gradient(135deg, var(--accent), var(--accent2)); border-radius: 9px; display: flex; align-items: center; justify-content: center; font-size: 16px; }
+    .logo-text { font-family: 'DM Mono', monospace; font-size: 16px; color: var(--text); }
+    .route-pill { background: var(--surface2); border: 1px solid var(--border2); border-radius: 50px; padding: 8px 18px; font-size: 13px; color: var(--muted); }
+    .route-pill strong { color: var(--text); }
+    .back-link { display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; background: var(--surface2); border: 1px solid var(--border2); border-radius: 50px; font-size: 13px; color: var(--muted); text-decoration: none; transition: border-color .2s, color .2s; }
+    .back-link:hover { border-color: var(--accent); color: var(--accent); }
+
+    /* ── Vehicle banner ── */
+    .vehicle-banner { background: var(--surface); border: 1px solid var(--border2); border-radius: 16px; padding: 16px 24px; display: flex; align-items: center; gap: 20px; margin-bottom: 24px; flex-wrap: wrap; }
+    .vb-label { font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+    .vb-name  { font-size: 18px; font-weight: 700; margin-top: 2px; }
+    .vb-specs { display: flex; gap: 24px; margin-left: auto; flex-wrap: wrap; }
+    .vb-spec .v { font-family: 'DM Mono', monospace; font-size: 15px; font-weight: 500; color: var(--accent); }
+    .vb-spec .l { font-size: 11px; color: var(--muted); margin-top: 1px; }
+
+    /* ── CO2 callout ── */
+    .callout { background: linear-gradient(135deg, rgba(0,229,160,0.08), rgba(0,212,255,0.05)); border: 1px solid rgba(0,229,160,0.2); border-radius: 14px; padding: 16px 20px; margin-bottom: 24px; display: flex; align-items: center; gap: 14px; }
+    .callout-icon { font-size: 28px; flex-shrink: 0; }
+    .callout-text h4 { font-size: 14px; font-weight: 600; color: var(--eco); margin-bottom: 3px; }
+    .callout-text p  { font-size: 13px; color: var(--muted); line-height: 1.5; }
+    .callout-text strong { color: var(--text); }
+
+    /* ── Route tabs ── */
+    .route-tabs { display: flex; gap: 12px; margin-bottom: 24px; flex-wrap: wrap; }
+
+    .tab {
+      flex: 1; min-width: 220px;
+      padding: 20px 22px;
+      background: var(--surface); border: 2px solid var(--border); border-radius: 16px;
+      cursor: pointer; transition: border-color .2s, background .2s, box-shadow .2s;
+      text-align: left;
+    }
+    .tab.eco-tab  { --tc: var(--eco); }
+    .tab.fast-tab { --tc: var(--fast); }
+
+    .tab-badge { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: var(--tc); margin-bottom: 8px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+    .tab-name  { font-size: 18px; font-weight: 700; margin-bottom: 8px; }
+    .tab-stats { display: flex; gap: 16px; flex-wrap: wrap; }
+    .tab-stat  { font-size: 12px; color: var(--muted); }
+    .tab-stat span { font-weight: 600; color: var(--text); }
+
+    .tab.active {
+      border-color: var(--tc);
+      background: color-mix(in srgb, var(--tc) 6%, var(--surface));
+      box-shadow: 0 0 28px color-mix(in srgb, var(--tc) 15%, transparent);
+    }
+    .tab:not(.active):hover { border-color: color-mix(in srgb, var(--tc) 40%, var(--border)); }
+
+    .candidates-badge {
+      display: inline-flex; align-items: center; gap: 4px;
+      background: color-mix(in srgb, var(--eco) 12%, transparent);
+      border: 1px solid color-mix(in srgb, var(--eco) 30%, transparent);
+      color: var(--eco); font-size: 9px; font-weight: 500; letter-spacing: .04em;
+      padding: 2px 7px; border-radius: 99px;
+    }
+
+    /* ── Main grid ── */
+    .main-grid { display: grid; grid-template-columns: 380px 1fr; gap: 20px; margin-bottom: 24px; align-items: start; }
+
+    /* ── Panel ── */
+    .panel { background: var(--surface); border: 1px solid var(--border2); border-radius: 18px; padding: 24px; }
+    .panel-title { font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); margin-bottom: 20px; }
+
+    /* ── Efficiency ring ── */
+    .eff-score { display: flex; flex-direction: column; align-items: center; padding: 12px 0 20px; border-bottom: 1px solid var(--border); margin-bottom: 4px; }
+    .ring-wrap { position: relative; width: 84px; height: 84px; }
+    .ring-svg  { transform: rotate(-90deg); }
+    .ring-bg   { fill: none; stroke: var(--surface2); stroke-width: 8; }
+    .ring-fg   { fill: none; stroke-width: 8; stroke-linecap: round; stroke-dasharray: 238; stroke-dashoffset: 238; transition: stroke-dashoffset 1s ease, stroke .3s; }
+    .ring-text { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+    .ring-num  { font-family: 'DM Mono', monospace; font-size: 22px; font-weight: 500; }
+    .ring-lbl  { font-size: 9px; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; }
+    .eff-label { font-size: 12px; color: var(--muted); margin-top: 10px; }
+
+    /* ── Metrics ── */
+    .metric-row { display: flex; align-items: center; justify-content: space-between; padding: 13px 0; border-bottom: 1px solid var(--border); }
+    .metric-row:last-of-type { border-bottom: none; padding-bottom: 0; }
+    .metric-left { display: flex; align-items: center; gap: 10px; }
+    .metric-icon { width: 34px; height: 34px; flex-shrink: 0; border-radius: 8px; background: var(--surface2); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 15px; }
+    .metric-name  { font-size: 14px; font-weight: 500; }
+    .metric-label { font-size: 12px; color: var(--muted); margin-top: 1px; }
+    .metric-right { text-align: right; }
+    .metric-value { font-family: 'DM Mono', monospace; font-size: 18px; font-weight: 500; }
+    .metric-unit  { font-size: 11px; color: var(--muted); margin-top: 1px; }
+
+    /* ── Fuel bars ── */
+    .fuel-breakdown { margin-top: 0; }
+    .fuel-bar-row   { margin-bottom: 14px; }
+    .fuel-bar-row:last-child { margin-bottom: 0; }
+    .fb-header { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 6px; }
+    .fb-label  { color: var(--muted); }
+    .fb-value  { font-family: 'DM Mono', monospace; font-weight: 500; }
+    .fb-track  { height: 5px; background: var(--surface2); border-radius: 99px; overflow: hidden; }
+    .fb-fill   { height: 100%; border-radius: 99px; width: 0%; transition: width .7s ease; }
+    .fb-idle   { background: linear-gradient(90deg, #ff6b6b, #ff8e53); }
+    .fb-accel  { background: linear-gradient(90deg, var(--fast), #ffe066); }
+    .fb-cruise { background: linear-gradient(90deg, var(--accent), var(--eco)); }
+
+    /* ── Steps toggle ── */
+    .steps-toggle-btn { margin-top: 20px; background: none; border: 1px solid var(--border2); border-radius: 8px; padding: 9px 16px; color: var(--muted); font-family: 'Space Grotesk', sans-serif; font-size: 13px; cursor: pointer; transition: border-color .2s, color .2s; width: 100%; text-align: left; }
+    .steps-toggle-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+    /* ── Steps panel ── */
+    .steps-panel { margin-top: 16px; display: none; }
+    .steps-panel.open { display: block; }
+    .step-list { list-style: none; }
+    .step-item { display: flex; gap: 12px; padding: 11px 0; border-bottom: 1px solid var(--border); align-items: flex-start; }
+    .step-item:last-child { border-bottom: none; }
+    .step-num  { width: 24px; height: 24px; flex-shrink: 0; border-radius: 50%; background: var(--surface2); border: 1px solid var(--border2); display: flex; align-items: center; justify-content: center; font-family: 'DM Mono', monospace; font-size: 11px; color: var(--muted); }
+    .step-text { font-size: 13px; line-height: 1.5; }
+    .step-meta { font-size: 11px; color: var(--muted); margin-top: 2px; font-family: 'DM Mono', monospace; }
+
+    /* ── Map ── */
+    .map-panel { background: var(--surface); border: 1px solid var(--border2); border-radius: 18px; overflow: hidden; display: flex; flex-direction: column; min-height: 560px; }
+    .map-header { padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
+    .map-header h3 { font-size: 14px; font-weight: 600; }
+    .map-legend { display: flex; gap: 14px; flex-wrap: wrap; }
+    .legend-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted); }
+    .legend-line { width: 20px; height: 3px; border-radius: 2px; flex-shrink: 0; }
+    #map { flex: 1; }
+
+    /* ── Comparison table ── */
+    .comp-section { margin-bottom: 24px; }
+    .comp-section h2 { font-size: 16px; font-weight: 700; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
+    .comp-wrap { background: var(--surface); border: 1px solid var(--border2); border-radius: 18px; overflow: hidden; }
+    .comp-table { width: 100%; border-collapse: collapse; }
+    .comp-table th { text-align: left; padding: 11px 18px; font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); background: var(--surface2); border-bottom: 1px solid var(--border); }
+    .comp-table td { padding: 15px 18px; border-bottom: 1px solid var(--border); font-size: 14px; }
+    .comp-table tr:last-child td { border-bottom: none; }
+    .comp-table tr:hover td { background: rgba(0,212,255,0.03); }
+    .comp-table td.mono { font-family: 'DM Mono', monospace; font-size: 13px; }
+    .comp-table td.best { color: var(--eco); font-weight: 600; }
+
+    .tag-pill { display: inline-flex; align-items: center; gap: 5px; padding: 4px 11px; border-radius: 50px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; }
+    .tag-eco  { background: rgba(0,229,160,0.12); color: var(--eco);  border: 1px solid rgba(0,229,160,0.25); }
+    .tag-fast { background: rgba(255,159,67,0.12); color: var(--fast); border: 1px solid rgba(255,159,67,0.25); }
+
+    /* ── Responsive ── */
+    @media (max-width: 960px) {
+      .main-grid { grid-template-columns: 1fr; }
+      .map-panel { min-height: 380px; }
+    }
+    @media (max-width: 640px) {
+      .page { padding: 16px 14px 40px; }
+      .route-pill { display: none; }
+      .vb-specs { gap: 14px; }
+    }
+  </style>
+</head>
+<body>
+<div class="bg-grid"></div>
+<div class="page">
+
+  <!-- Topbar -->
+  <div class="topbar">
+    <a href="/" class="logo-mark">
+      <div class="logo-icon">🛣️</div>
+      <span class="logo-text">MyRoute</span>
+    </a>
+    <div class="route-pill">
+      <strong>{{ start }}</strong>&nbsp;→&nbsp;<strong>{{ end }}</strong>
+    </div>
+    <a href="/" class="back-link">← New route</a>
+  </div>
+
+  <!-- Vehicle banner -->
+  <div class="vehicle-banner">
+    <div>
+      <div class="vb-label">Vehicle</div>
+      <div class="vb-name">{{ make }} {{ model }}</div>
+    </div>
+    <div class="vb-specs">
+      <div class="vb-spec">
+        <div class="v">{{ specs.weight }}</div>
+        <div class="l">Weight (kg)</div>
+      </div>
+      <div class="vb-spec">
+        <div class="v">{{ specs.drag_coefficient }}</div>
+        <div class="l">Drag Cd</div>
+      </div>
+      <div class="vb-spec">
+        <div class="v">{{ (specs.efficiency * 100) | round | int }}%</div>
+        <div class="l">Engine Eff.</div>
+      </div>
+      <div class="vb-spec">
+        <div class="v">{{ specs.fuel_type | capitalize }}</div>
+        <div class="l">Fuel Type</div>
+      </div>
+      <div class="vb-spec">
+        <div class="v">{{ specs.optimal_speed }}</div>
+        <div class="l">Optimal km/h</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CO2 callout -->
+  {% set co2_saved = (fastest.co2_emissions - eco.co2_emissions) | round(2) %}
+  {% set fuel_saved = (fastest.total_fuel - eco.total_fuel) | round(2) %}
+  {% if co2_saved > 0.01 %}
+  <div class="callout">
+    <div class="callout-icon">🌿</div>
+    <div class="callout-text">
+      <h4>Eco route saves {{ co2_saved }} kg CO₂ vs fastest</h4>
+      <p>
+        That's like driving <strong>{{ ((co2_saved / 0.21) | round | int) }}</strong> fewer km in an average car,
+        and saves <strong>{{ fuel_saved }} L</strong> of fuel.
+        The eco route was selected from <strong>{{ candidates_evaluated }} candidate routes</strong> evaluated by the physics engine.
+      </p>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Route tabs -->
+  <div class="route-tabs">
+
+    <div class="tab eco-tab active" id="tab-eco" onclick="switchRoute('eco')">
+      <div class="tab-badge">
+        🌿 Eco Route
+        <span class="candidates-badge">{{ candidates_evaluated }} routes scored</span>
+      </div>
+      <div class="tab-name">Most Efficient</div>
+      <div class="tab-stats">
+        <div class="tab-stat">Fuel: <span>
+          {% if fuel_type == 'electric' %}{{ eco.total_fuel }} kWh{% else %}{{ eco.total_fuel }} L{% endif %}
+        </span></div>
+        <div class="tab-stat">Distance: <span>{{ eco.distance }} km</span></div>
+        <div class="tab-stat">Time: <span>{{ eco.duration | round | int }} min</span></div>
+      </div>
+    </div>
+
+    <div class="tab fast-tab" id="tab-fastest" onclick="switchRoute('fastest')">
+      <div class="tab-badge">⚡ Fastest Route</div>
+      <div class="tab-name">Quickest Time</div>
+      <div class="tab-stats">
+        <div class="tab-stat">Time: <span>{{ fastest.duration | round | int }} min</span></div>
+        <div class="tab-stat">Distance: <span>{{ fastest.distance }} km</span></div>
+        <div class="tab-stat">Fuel: <span>
+          {% if fuel_type == 'electric' %}{{ fastest.total_fuel }} kWh{% else %}{{ fastest.total_fuel }} L{% endif %}
+        </span></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Main grid -->
+  <div class="main-grid">
+
+    <!-- Left: metrics + fuel breakdown -->
+    <div>
+      <div class="panel" style="margin-bottom: 16px;">
+        <div class="panel-title">Route Metrics</div>
+
+        <!-- Efficiency ring -->
+        <div class="eff-score">
+          <div class="ring-wrap">
+            <svg class="ring-svg" width="84" height="84" viewBox="0 0 84 84">
+              <circle class="ring-bg" cx="42" cy="42" r="38"/>
+              <circle class="ring-fg" id="effRing" cx="42" cy="42" r="38"/>
+            </svg>
+            <div class="ring-text">
+              <span class="ring-num" id="effScore">—</span>
+              <span class="ring-lbl">Score</span>
+            </div>
+          </div>
+          <div class="eff-label">Efficiency score out of 100</div>
+        </div>
+
+        <!-- Metric rows -->
+        <div class="metric-row">
+          <div class="metric-left">
+            <div class="metric-icon">📏</div>
+            <div>
+              <div class="metric-name">Distance</div>
+              <div class="metric-label">Total route length</div>
+            </div>
+          </div>
+          <div class="metric-right">
+            <div class="metric-value" id="mDist">—</div>
+            <div class="metric-unit">km</div>
+          </div>
+        </div>
+
+        <div class="metric-row">
+          <div class="metric-left">
+            <div class="metric-icon">⏱️</div>
+            <div>
+              <div class="metric-name">Duration</div>
+              <div class="metric-label">Estimated travel time</div>
+            </div>
+          </div>
+          <div class="metric-right">
+            <div class="metric-value" id="mDur">—</div>
+            <div class="metric-unit">minutes</div>
+          </div>
+        </div>
+
+        <div class="metric-row">
+          <div class="metric-left">
+            <div class="metric-icon">⛽</div>
+            <div>
+              <div class="metric-name">Fuel Used</div>
+              <div class="metric-label">Physics model estimate</div>
+            </div>
+          </div>
+          <div class="metric-right">
+            <div class="metric-value" id="mFuel">—</div>
+            <div class="metric-unit" id="mFuelUnit">litres</div>
+          </div>
+        </div>
+
+        <div class="metric-row">
+          <div class="metric-left">
+            <div class="metric-icon">💰</div>
+            <div>
+              <div class="metric-name">Est. Cost</div>
+              <div class="metric-label">At current avg. prices</div>
+            </div>
+          </div>
+          <div class="metric-right">
+            <div class="metric-value" id="mCost">—</div>
+            <div class="metric-unit">USD</div>
+          </div>
+        </div>
+
+        <div class="metric-row">
+          <div class="metric-left">
+            <div class="metric-icon">🌫️</div>
+            <div>
+              <div class="metric-name">CO₂ Emitted</div>
+              <div class="metric-label">Carbon footprint</div>
+            </div>
+          </div>
+          <div class="metric-right">
+            <div class="metric-value" id="mCO2">—</div>
+            <div class="metric-unit">kg CO₂</div>
+          </div>
+        </div>
+
+        <div class="metric-row">
+          <div class="metric-left">
+            <div class="metric-icon">🏎️</div>
+            <div>
+              <div class="metric-name">Avg. Speed</div>
+              <div class="metric-label">Distance ÷ time</div>
+            </div>
+          </div>
+          <div class="metric-right">
+            <div class="metric-value" id="mSpeed">—</div>
+            <div class="metric-unit">km/h</div>
+          </div>
+        </div>
+
+      </div><!-- /panel metrics -->
+
+      <!-- Fuel breakdown panel -->
+      <div class="panel" style="margin-bottom: 16px;">
+        <div class="panel-title">Fuel Breakdown</div>
+        <div class="fuel-breakdown">
+          <div class="fuel-bar-row">
+            <div class="fb-header">
+              <span class="fb-label">🔴 Idling</span>
+              <span class="fb-value" id="fIdle">—</span>
+            </div>
+            <div class="fb-track"><div class="fb-fill fb-idle" id="fIdleBar"></div></div>
+          </div>
+          <div class="fuel-bar-row">
+            <div class="fb-header">
+              <span class="fb-label">🟡 Acceleration</span>
+              <span class="fb-value" id="fAccel">—</span>
+            </div>
+            <div class="fb-track"><div class="fb-fill fb-accel" id="fAccelBar"></div></div>
+          </div>
+          <div class="fuel-bar-row">
+            <div class="fb-header">
+              <span class="fb-label">🔵 Cruising</span>
+              <span class="fb-value" id="fCruise">—</span>
+            </div>
+            <div class="fb-track"><div class="fb-fill fb-cruise" id="fCruiseBar"></div></div>
+          </div>
+        </div>
+
+        <button class="steps-toggle-btn" id="stepsBtn" onclick="toggleSteps()">
+          Show turn-by-turn directions ↓
+        </button>
+      </div>
+
+      <!-- Steps panel (hidden by default) -->
+      <div class="panel steps-panel" id="stepsPanel">
+        <div class="panel-title">Turn-by-Turn Directions</div>
+        <ul class="step-list" id="stepList"></ul>
+      </div>
+    </div>
+
+    <!-- Right: map -->
+    <div class="map-panel">
+      <div class="map-header">
+        <h3>Route Map</h3>
+        <div class="map-legend">
+          <div class="legend-item">
+            <div class="legend-line" style="background: var(--eco);"></div>
+            Eco
+          </div>
+          <div class="legend-item">
+            <div class="legend-line" style="background: var(--fast); border-top: 2px dashed var(--fast); height: 0; margin-top: 1px;"></div>
+            Fastest
+          </div>
+        </div>
+      </div>
+      <div id="map"></div>
+    </div>
+
+  </div><!-- /main-grid -->
+
+  <!-- Comparison table -->
+  <div class="comp-section">
+    <h2>📊 Route Comparison</h2>
+    <div class="comp-wrap">
+      <table class="comp-table">
+        <thead>
+          <tr>
+            <th>Route</th>
+            <th>Distance</th>
+            <th>Duration</th>
+            <th>Fuel</th>
+            <th>Cost</th>
+            <th>CO₂</th>
+            <th>Eff. Score</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for r in comparison %}
+          <tr>
+            <td>
+              {% if r.tag == 'eco' %}
+                <span class="tag-pill tag-eco">🌿 Eco</span>
+              {% else %}
+                <span class="tag-pill tag-fast">⚡ Fastest</span>
+              {% endif %}
+            </td>
+            {# Eco row: best fuel/cost/co2. Fastest row: best time. #}
+            {% if r.tag == 'eco' %}
+              <td class="mono">{{ r.distance }} km</td>
+              <td class="mono">{{ r.duration | round | int }} min</td>
+              <td class="mono best">{{ r.total_fuel }} {% if fuel_type == 'electric' %}kWh{% else %}L{% endif %}</td>
+              <td class="mono best">${{ r.cost }}</td>
+              <td class="mono best">{{ r.co2 }} kg</td>
+              <td class="mono">{{ r.eff_score }}</td>
+            {% else %}
+              <td class="mono">{{ r.distance }} km</td>
+              <td class="mono best">{{ r.duration | round | int }} min</td>
+              <td class="mono">{{ r.total_fuel }} {% if fuel_type == 'electric' %}kWh{% else %}L{% endif %}</td>
+              <td class="mono">${{ r.cost }}</td>
+              <td class="mono">{{ r.co2 }} kg</td>
+              <td class="mono">{{ r.eff_score }}</td>
+            {% endif %}
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div><!-- /page -->
+
+<script>
+// ── All route data is serialised safely via tojson (never raw Python literals) ──
+
+const ROUTES = {
+  eco: {
+    distance:        {{ eco.distance        | tojson }},
+    duration:        {{ eco.duration        | tojson }},
+    total_fuel:      {{ eco.total_fuel      | tojson }},
+    idle_fuel:       {{ eco.idle_fuel       | tojson }},
+    accel_fuel:      {{ eco.accel_fuel      | tojson }},
+    cruise_fuel:     {{ eco.cruise_fuel     | tojson }},
+    fuel_cost:       {{ eco.fuel_cost       | tojson }},
+    co2_emissions:   {{ eco.co2_emissions   | tojson }},
+    efficiency_score:{{ eco.efficiency_score| tojson }},
+    avg_speed:       {{ eco.avg_speed       | tojson }},
+    coords:          {{ eco.route_coordinates | tojson }},
+    steps:           {{ eco.steps           | tojson }},
+  },
+  fastest: {
+    distance:        {{ fastest.distance        | tojson }},
+    duration:        {{ fastest.duration        | tojson }},
+    total_fuel:      {{ fastest.total_fuel      | tojson }},
+    idle_fuel:       {{ fastest.idle_fuel       | tojson }},
+    accel_fuel:      {{ fastest.accel_fuel      | tojson }},
+    cruise_fuel:     {{ fastest.cruise_fuel     | tojson }},
+    fuel_cost:       {{ fastest.fuel_cost       | tojson }},
+    co2_emissions:   {{ fastest.co2_emissions   | tojson }},
+    efficiency_score:{{ fastest.efficiency_score| tojson }},
+    avg_speed:       {{ fastest.avg_speed       | tojson }},
+    coords:          {{ fastest.route_coordinates | tojson }},
+    steps:           {{ fastest.steps           | tojson }},
+  },
+};
+
+const START_LAT = {{ eco.start_lat | tojson }};
+const START_LNG = {{ eco.start_lng | tojson }};
+const END_LAT   = {{ eco.end_lat   | tojson }};
+const END_LNG   = {{ eco.end_lng   | tojson }};
+const FUEL_TYPE = {{ fuel_type | tojson }};
+
+// ── Leaflet map ───────────────────────────────────────────────────────────────
+
+const map = L.map('map', { zoomControl: true }).setView([START_LAT, START_LNG], 10);
+
+L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+  attribution: '© OpenStreetMap © Carto',
+  maxZoom: 19,
+}).addTo(map);
+
+function pinIcon(color, emoji) {
+  return L.divIcon({
+    html: `<div style="
+        width:34px;height:34px;border-radius:50% 50% 50% 0;
+        transform:rotate(-45deg);
+        background:${color};border:2px solid rgba(255,255,255,0.8);
+        box-shadow:0 3px 10px rgba(0,0,0,0.5);
+        display:flex;align-items:center;justify-content:center;">
+      <span style="transform:rotate(45deg);font-size:14px;">${emoji}</span>
+    </div>`,
+    iconSize: [34, 34], iconAnchor: [17, 34], popupAnchor: [0, -36], className: '',
+  });
+}
+
+const startMarker = L.marker([START_LAT, START_LNG], { icon: pinIcon('#00d4ff', '📍') })
+  .addTo(map)
+  .bindPopup('<b>Start:</b> {{ start | e }}');
+
+const endMarker = L.marker([END_LAT, END_LNG], { icon: pinIcon('#00e5a0', '🏁') })
+  .addTo(map)
+  .bindPopup('<b>End:</b> {{ end | e }}');
+
+// Draw both polylines — eco solid on top, fastest dashed underneath
+const COLORS = { eco: '#00e5a0', fastest: '#ff9f43' };
+const polylines = {};
+
+// Draw fastest first (underneath)
+if (ROUTES.fastest.coords && ROUTES.fastest.coords.length) {
+  polylines.fastest = L.polyline(ROUTES.fastest.coords, {
+    color: COLORS.fastest, weight: 3, opacity: 0.35, dashArray: '9 7',
+  }).addTo(map);
+}
+// Draw eco on top
+if (ROUTES.eco.coords && ROUTES.eco.coords.length) {
+  polylines.eco = L.polyline(ROUTES.eco.coords, {
+    color: COLORS.eco, weight: 5, opacity: 0.9,
+  }).addTo(map);
+}
+
+function fitRoute(tag) {
+  const pts = ROUTES[tag].coords;
+  if (!pts || !pts.length) return;
+  try {
+    const bounds = L.featureGroup([
+      L.polyline(pts),
+      startMarker,
+      endMarker,
+    ]).getBounds();
+    if (bounds.isValid()) map.fitBounds(bounds.pad(0.12));
+  } catch(e) { /* no-op */ }
+}
+
+fitRoute('eco');
+
+// ── State & switching ─────────────────────────────────────────────────────────
+
+let activeTag = 'eco';
+let stepsOpen = false;
+
+function switchRoute(tag) {
+  activeTag = tag;
+
+  // Tabs
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('tab-' + tag).classList.add('active');
+
+  // Polylines: active = solid & front, inactive = dashed & back
+  for (const [t, pl] of Object.entries(polylines)) {
+    if (t === tag) {
+      pl.setStyle({ weight: 5, opacity: 0.9, dashArray: null });
+      pl.bringToFront();
+    } else {
+      pl.setStyle({ weight: 3, opacity: 0.3, dashArray: '9 7' });
+    }
+  }
+  fitRoute(tag);
+
+  updateMetrics(tag);
+  if (stepsOpen) renderSteps(tag);
+}
+
+// ── Metrics update ────────────────────────────────────────────────────────────
+
+function setText(id, val) {
+  const el = document.getElementById(id);
+  if (el) el.textContent = (val === null || val === undefined) ? '—' : val;
+}
+
+function updateMetrics(tag) {
+  const r = ROUTES[tag];
+  if (!r) return;
+
+  setText('mDist',  r.distance);
+  setText('mDur',   r.duration !== null ? Math.round(r.duration) : '—');
+  setText('mFuel',  r.total_fuel);
+  setText('mCost',  r.fuel_cost !== null ? '$' + r.fuel_cost : '—');
+  setText('mCO2',   r.co2_emissions);
+  setText('mSpeed', r.avg_speed);
+  setText('mFuelUnit', FUEL_TYPE === 'electric' ? 'kWh' : 'litres');
+
+  // Efficiency ring
+  const score = r.efficiency_score || 0;
+  setText('effScore', score);
+  const ring = document.getElementById('effRing');
+  if (ring) {
+    const circumference = 2 * Math.PI * 38; // r=38
+    ring.style.strokeDasharray  = circumference;
+    ring.style.strokeDashoffset = circumference - (score / 100) * circumference;
+    ring.style.stroke = tag === 'eco' ? 'var(--eco)' : 'var(--fast)';
+  }
+
+  // Fuel bars
+  const total = r.total_fuel || 0.001;
+  const fuelLabel = FUEL_TYPE === 'electric' ? ' kWh' : ' L';
+
+  setText('fIdle',  (r.idle_fuel  || 0) + fuelLabel);
+  setText('fAccel', (r.accel_fuel || 0) + fuelLabel);
+  setText('fCruise',(r.cruise_fuel|| 0) + fuelLabel);
+
+  const pct = (v) => (Math.min(100, Math.max(0, ((v || 0) / total) * 100)).toFixed(1)) + '%';
+  const idleBar   = document.getElementById('fIdleBar');
+  const accelBar  = document.getElementById('fAccelBar');
+  const cruiseBar = document.getElementById('fCruiseBar');
+  if (idleBar)   idleBar.style.width   = pct(r.idle_fuel);
+  if (accelBar)  accelBar.style.width  = pct(r.accel_fuel);
+  if (cruiseBar) cruiseBar.style.width = pct(r.cruise_fuel);
+}
+
+// ── Steps ─────────────────────────────────────────────────────────────────────
+
+function renderSteps(tag) {
+  const steps = ROUTES[tag].steps || [];
+  const list  = document.getElementById('stepList');
+  if (!list) return;
+  list.innerHTML = '';
+  steps.forEach(function(s, i) {
+    const instr = (typeof s === 'object' && s !== null) ? (s.instruction || '') : String(s);
+    const dist  = (typeof s === 'object' && s !== null && s.distance) ? s.distance + ' km' : '';
+    const dur   = (typeof s === 'object' && s !== null && s.duration)  ? s.duration + ' min' : '';
+    const meta  = [dist, dur].filter(Boolean).join(' · ');
+    const li = document.createElement('li');
+    li.className = 'step-item';
+    li.innerHTML =
+      '<div class="step-num">' + (i + 1) + '</div>' +
+      '<div>' +
+        '<div class="step-text">' + escHtml(instr) + '</div>' +
+        (meta ? '<div class="step-meta">' + escHtml(meta) + '</div>' : '') +
+      '</div>';
+    list.appendChild(li);
+  });
+}
+
+function toggleSteps() {
+  stepsOpen = !stepsOpen;
+  const panel = document.getElementById('stepsPanel');
+  const btn   = document.getElementById('stepsBtn');
+  if (panel) panel.classList.toggle('open', stepsOpen);
+  if (btn)   btn.textContent = stepsOpen ? 'Hide directions ↑' : 'Show turn-by-turn directions ↓';
+  if (stepsOpen) renderSteps(activeTag);
+}
+
+function escHtml(s) {
+  return String(s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+updateMetrics('eco');
+</script>
+</body>
+</html>
