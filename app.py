@@ -9,7 +9,6 @@ ORS_API_KEY = os.environ.get("ORS_API_KEY", "")
 app = Flask(__name__)
 
 # OpenRouteService API Key and Base URL
-ORS_API_KEY = "5b3ce3597851110001cf6248159698df886c401eb4c33836da4c121d"
 ORS_BASE_URL = "https://api.openrouteservice.org"
 
 # ─────────────────────────────────────────────
