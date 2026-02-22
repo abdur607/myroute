@@ -3,433 +3,782 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>MyRoute | Smarter, Greener Travel</title>
+  <title>MyRoute — Fuel-Efficient Navigation</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Outfit:wght@300;400;500;600&family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg:        #06080f;
-      --surface:   #0d1220;
-      --surface2:  #121929;
-      --border:    rgba(100,180,255,0.10);
-      --border2:   rgba(100,180,255,0.20);
-      --accent:    #00d4ff;
-      --accent2:   #7c5cfc;
-      --eco:       #00e5a0;
-      --text:      #e8f0ff;
-      --muted:     #6a7a9b;
-      --card-glow: 0 0 40px rgba(0,212,255,0.06);
+      --blue-1: #78A2CC;   /* Dark Pastel Blue */
+      --blue-2: #88AED0;   /* Light Cobalt Blue */
+      --blue-3: #96B9D0;   /* Dark Sky Blue */
+      --blue-4: #A4C3D2;   /* Pastel Blue */
+      --blue-5: #AECBD6;   /* Pastel Blue light */
+      --blue-6: #BFD4DB;   /* Columbia Blue */
+      --paper:  #F4F1EC;   /* warm off-white */
+      --ink:    #1C2B3A;   /* near-black blue-tinted */
+      --ink-2:  #3A5068;   /* mid ink */
+      --ink-3:  #6B8299;   /* light ink */
+      --rule:   #D0D8E0;   /* hairline rule */
+      --form-bg:#FAFAF8;   /* slightly warm white for form area */
     }
+
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    body { background:var(--bg);color:var(--text);font-family:'Space Grotesk',sans-serif;min-height:100vh;overflow-x:hidden; }
 
-    .bg-grid { position:fixed;inset:0;z-index:0;background-image:linear-gradient(rgba(0,212,255,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(0,212,255,0.03) 1px,transparent 1px);background-size:48px 48px;pointer-events:none; }
-    .bg-orb  { position:fixed;border-radius:50%;filter:blur(90px);pointer-events:none;z-index:0; }
-    .bg-orb-1{ width:500px;height:500px;background:radial-gradient(circle,rgba(0,212,255,0.08) 0%,transparent 70%);top:-120px;left:-120px; }
-    .bg-orb-2{ width:600px;height:600px;background:radial-gradient(circle,rgba(124,92,252,0.07) 0%,transparent 70%);bottom:-150px;right:-150px; }
-    .bg-orb-3{ width:350px;height:350px;background:radial-gradient(circle,rgba(0,229,160,0.05) 0%,transparent 70%);top:40%;left:50%;transform:translate(-50%,-50%); }
-
-    .page-wrap { position:relative;z-index:1;min-height:100vh;display:grid;grid-template-columns:1fr 1fr;max-width:1440px;margin:0 auto; }
-
-    /* Hero */
-    .hero { display:flex;flex-direction:column;justify-content:center;padding:60px 70px 60px 60px; }
-    .logo-mark  { display:inline-flex;align-items:center;gap:10px;margin-bottom:56px; }
-    .logo-icon  { width:36px;height:36px;background:linear-gradient(135deg,var(--accent),var(--accent2));border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px; }
-    .logo-text  { font-family:'DM Mono',monospace;font-size:18px;font-weight:500;letter-spacing:.04em;color:var(--text); }
-    .hero-eyebrow { font-family:'DM Mono',monospace;font-size:12px;font-weight:400;letter-spacing:.15em;text-transform:uppercase;color:var(--accent);margin-bottom:20px; }
-    .hero-title { font-size:clamp(38px,4vw,60px);font-weight:700;line-height:1.08;letter-spacing:-1.5px;margin-bottom:24px; }
-    .hero-title .line-2 { background:linear-gradient(90deg,var(--accent),var(--eco));-webkit-background-clip:text;-webkit-text-fill-color:transparent; }
-    .hero-sub   { font-size:17px;line-height:1.7;color:var(--muted);max-width:440px;margin-bottom:56px; }
-    .features   { display:flex;flex-direction:column;gap:16px; }
-    .feature    { display:flex;align-items:flex-start;gap:14px; }
-    .feature-icon { width:36px;height:36px;flex-shrink:0;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px; }
-    .feature-text h4 { font-size:14px;font-weight:600;margin-bottom:2px; }
-    .feature-text p  { font-size:13px;color:var(--muted);line-height:1.5; }
-
-    /* Form panel */
-    .form-panel { display:flex;align-items:center;justify-content:center;padding:60px 60px 60px 20px; }
-    .card {
-      background:var(--surface);border:1px solid var(--border2);border-radius:24px;
-      padding:40px 36px;width:100%;max-width:460px;
-      box-shadow:var(--card-glow),0 24px 60px rgba(0,0,0,0.4);
-      position:relative;
-      /* overflow must be visible so dropdown can escape the card */
-      overflow:visible;
+    html { font-size: 16px; }
+    body {
+      background: var(--paper);
+      color: var(--ink);
+      font-family: 'Outfit', sans-serif;
+      min-height: 100vh;
+      line-height: 1.5;
     }
-    .card::before { content:'';position:absolute;top:0;left:0;right:0;height:1px;border-radius:24px 24px 0 0;background:linear-gradient(90deg,transparent,var(--accent),var(--accent2),transparent); }
-    .card-header { margin-bottom:32px; }
-    .card-header h2 { font-size:22px;font-weight:700;letter-spacing:-.5px;margin-bottom:6px; }
-    .card-header p  { font-size:14px;color:var(--muted); }
 
-    .form-section { margin-bottom:24px; }
-    .section-label { font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:10px;display:block; }
-    .field { margin-bottom:12px;position:relative; }
-    .field-icon { position:absolute;left:14px;top:50%;transform:translateY(-50%);font-size:15px;pointer-events:none;z-index:2; }
+    /* ── Topographic background pattern ── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      opacity: 0.045;
+      background-image:
+        repeating-linear-gradient(
+          0deg,
+          transparent,
+          transparent 39px,
+          var(--blue-1) 39px,
+          var(--blue-1) 40px
+        ),
+        repeating-linear-gradient(
+          90deg,
+          transparent,
+          transparent 79px,
+          var(--blue-1) 79px,
+          var(--blue-1) 80px
+        );
+      pointer-events: none;
+    }
 
+    /* ── Layout ── */
+    .shell {
+      position: relative;
+      z-index: 1;
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: 1fr 480px;
+      grid-template-rows: auto 1fr;
+    }
+
+    /* ── Masthead ── */
+    .masthead {
+      grid-column: 1 / -1;
+      border-bottom: 2px solid var(--ink);
+      padding: 0 48px;
+      display: flex;
+      align-items: stretch;
+      justify-content: space-between;
+    }
+
+    .masthead-brand {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 20px 0;
+      border-right: 1px solid var(--rule);
+      padding-right: 32px;
+    }
+    .brand-mark {
+      width: 38px;
+      height: 38px;
+      border: 2px solid var(--ink);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+    }
+    .brand-name {
+      font-family: 'Playfair Display', serif;
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: -0.3px;
+    }
+    .brand-tagline {
+      font-family: 'Courier Prime', monospace;
+      font-size: 11px;
+      color: var(--ink-3);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 20px 0 20px 32px;
+      display: flex;
+      align-items: center;
+    }
+    .masthead-nav {
+      display: flex;
+      align-items: center;
+      gap: 0;
+    }
+    .nav-item {
+      font-family: 'Courier Prime', monospace;
+      font-size: 11px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--ink-3);
+      padding: 0 20px;
+      border-left: 1px solid var(--rule);
+      height: 100%;
+      display: flex;
+      align-items: center;
+    }
+
+    /* ── Left content area ── */
+    .content-left {
+      padding: 56px 48px 56px 48px;
+      border-right: 1px solid var(--rule);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .issue-label {
+      font-family: 'Courier Prime', monospace;
+      font-size: 11px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--blue-1);
+      margin-bottom: 24px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .issue-label::before {
+      content: '';
+      display: inline-block;
+      width: 24px;
+      height: 1px;
+      background: var(--blue-1);
+    }
+
+    .headline {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(42px, 4.5vw, 68px);
+      font-weight: 700;
+      line-height: 1.04;
+      letter-spacing: -1px;
+      margin-bottom: 20px;
+      max-width: 600px;
+    }
+    .headline em {
+      font-style: italic;
+      color: var(--blue-1);
+    }
+
+    .standfirst {
+      font-size: 17px;
+      line-height: 1.65;
+      color: var(--ink-2);
+      max-width: 500px;
+      margin-bottom: 56px;
+      font-weight: 300;
+    }
+
+    /* ── Factoids strip ── */
+    .factoids {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      border-top: 1px solid var(--rule);
+      border-left: 1px solid var(--rule);
+      margin-bottom: 52px;
+      max-width: 580px;
+    }
+    .factoid {
+      border-right: 1px solid var(--rule);
+      border-bottom: 1px solid var(--rule);
+      padding: 18px 20px;
+    }
+    .factoid-num {
+      font-family: 'Playfair Display', serif;
+      font-size: 32px;
+      font-weight: 600;
+      color: var(--blue-1);
+      line-height: 1;
+      margin-bottom: 4px;
+    }
+    .factoid-label {
+      font-family: 'Courier Prime', monospace;
+      font-size: 10px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--ink-3);
+    }
+
+    /* ── Selling points ── */
+    .points {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      max-width: 520px;
+    }
+    .point {
+      display: grid;
+      grid-template-columns: 32px 1fr;
+      gap: 16px;
+      align-items: start;
+      padding: 16px 0;
+      border-bottom: 1px solid var(--rule);
+    }
+    .point:first-child { border-top: 1px solid var(--rule); }
+    .point-index {
+      font-family: 'Courier Prime', monospace;
+      font-size: 11px;
+      color: var(--ink-3);
+      padding-top: 2px;
+    }
+    .point-body h4 {
+      font-size: 15px;
+      font-weight: 600;
+      margin-bottom: 3px;
+      color: var(--ink);
+    }
+    .point-body p {
+      font-size: 13px;
+      color: var(--ink-3);
+      line-height: 1.5;
+    }
+
+    /* ── Right form panel ── */
+    .form-panel {
+      background: var(--form-bg);
+      border-left: 2px solid var(--ink);
+      padding: 48px 40px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      position: relative;
+    }
+
+    .form-panel::before {
+      content: 'PLAN ROUTE';
+      font-family: 'Courier Prime', monospace;
+      font-size: 10px;
+      letter-spacing: 0.2em;
+      color: var(--ink-3);
+      position: absolute;
+      top: 28px;
+      left: 40px;
+    }
+
+    .form-panel-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 28px;
+      font-weight: 600;
+      margin-top: 32px;
+      margin-bottom: 6px;
+    }
+    .form-panel-sub {
+      font-size: 14px;
+      color: var(--ink-3);
+      margin-bottom: 36px;
+    }
+
+    /* ── Form elements ── */
+    .field-group {
+      margin-bottom: 28px;
+    }
+    .field-group-label {
+      font-family: 'Courier Prime', monospace;
+      font-size: 10px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--ink-3);
+      margin-bottom: 10px;
+      display: block;
+    }
+    .field {
+      position: relative;
+      margin-bottom: 10px;
+    }
+    .field:last-child { margin-bottom: 0; }
+    .field-prefix {
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 42px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Courier Prime', monospace;
+      font-size: 11px;
+      color: var(--ink-3);
+      border-right: 1px solid var(--rule);
+      z-index: 2;
+      pointer-events: none;
+    }
     input, select {
-      width:100%;padding:13px 14px 13px 40px;background:var(--surface2);border:1px solid var(--border);
-      border-radius:12px;color:var(--text);font-family:'Space Grotesk',sans-serif;font-size:14px;
-      outline:none;transition:border-color .2s,box-shadow .2s;-webkit-appearance:none;
+      width: 100%;
+      padding: 12px 14px 12px 52px;
+      background: #fff;
+      border: 1px solid var(--rule);
+      color: var(--ink);
+      font-family: 'Outfit', sans-serif;
+      font-size: 14px;
+      outline: none;
+      border-radius: 0;
+      -webkit-appearance: none;
+      transition: border-color 0.15s;
     }
-    input::placeholder { color:var(--muted); }
-    input:focus, select:focus { border-color:var(--accent);box-shadow:0 0 0 3px rgba(0,212,255,.10); }
+    input:focus, select:focus {
+      border-color: var(--blue-1);
+      box-shadow: inset 0 0 0 1px var(--blue-1);
+    }
+    input::placeholder { color: var(--ink-3); font-weight: 300; }
     select {
-      background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='7' fill='none'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236a7a9b' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
-      background-repeat:no-repeat;background-position:right 14px center;padding-right:36px;cursor:pointer;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' fill='none'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%236B8299' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 14px center;
+      padding-right: 36px;
+      cursor: pointer;
     }
-    option { background:#1a2333; }
-    .grid-2 { display:grid;grid-template-columns:1fr 1fr;gap:10px; }
+    option { background: #fff; color: var(--ink); }
 
-    /* ── Autocomplete ── */
-    .autocomplete-wrap { position:relative; }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+    /* Confirmed state */
+    .field-confirmed input {
+      border-color: var(--blue-1);
+      background: #f0f7fc;
+    }
+    .field-confirmed .field-prefix { color: var(--blue-1); }
+    .confirm-tick {
+      display: none;
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-family: 'Courier Prime', monospace;
+      font-size: 12px;
+      color: var(--blue-1);
+      font-weight: 700;
+      z-index: 3;
+    }
+    .field-confirmed .confirm-tick { display: block; }
+
+    /* Autocomplete */
+    .autocomplete-wrap { position: relative; }
     .ac-list {
-      display:none;position:absolute;top:calc(100% + 5px);left:0;right:0;z-index:9999;
-      background:var(--surface2);border:1px solid var(--border2);border-radius:12px;
-      list-style:none;overflow:hidden;box-shadow:0 16px 40px rgba(0,0,0,0.6);
-      max-height:256px;overflow-y:auto;
+      display: none;
+      position: absolute;
+      top: 100%;
+      left: 0; right: 0;
+      z-index: 9999;
+      background: #fff;
+      border: 1px solid var(--blue-2);
+      border-top: none;
+      list-style: none;
+      max-height: 240px;
+      overflow-y: auto;
+      box-shadow: 0 8px 24px rgba(28,43,58,0.12);
     }
-    .ac-list.open { display:block; }
-    .ac-list li { padding:11px 14px;cursor:pointer;border-bottom:1px solid var(--border);transition:background .12s;font-size:13px;line-height:1.4; }
-    .ac-list li:last-child { border-bottom:none; }
-    .ac-list li:hover, .ac-list li.highlighted { background:rgba(0,212,255,.09); }
-    .ac-short { font-weight:600;color:var(--text);margin-bottom:1px; }
-    .ac-full  { font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis; }
-    .ac-coords { font-family:'DM Mono',monospace;font-size:10px;color:var(--accent);margin-top:1px; }
-
-    /* Green tick when location confirmed via autocomplete */
-    .field-confirmed input { border-color:var(--eco) !important; }
-    .field-confirmed .confirm-tick { display:block; }
-    .confirm-tick { display:none;position:absolute;right:12px;top:50%;transform:translateY(-50%);color:var(--eco);font-size:15px;font-weight:700;pointer-events:none;z-index:3; }
-
-    /* Vehicle preview */
-    .vehicle-preview { background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-top:6px;display:none; }
-    .vehicle-preview.show { display:block; }
-    .vehicle-preview .vp-name { font-size:13px;font-weight:600;margin-bottom:8px; }
-    .vp-specs { display:grid;grid-template-columns:repeat(3,1fr);gap:6px; }
-    .vp-spec  { text-align:center; }
-    .vp-spec .val { font-family:'DM Mono',monospace;font-size:14px;font-weight:500;color:var(--accent); }
-    .vp-spec .lbl { font-size:10px;color:var(--muted);margin-top:1px; }
+    .ac-list.open { display: block; }
+    .ac-list li {
+      padding: 10px 14px;
+      cursor: pointer;
+      border-bottom: 1px solid var(--rule);
+      transition: background 0.1s;
+    }
+    .ac-list li:last-child { border-bottom: none; }
+    .ac-list li:hover, .ac-list li.highlighted { background: #EDF4F8; }
+    .ac-short { font-size: 13px; font-weight: 500; color: var(--ink); }
+    .ac-full  { font-size: 11px; color: var(--ink-3); margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .ac-coords { font-family: 'Courier Prime', monospace; font-size: 10px; color: var(--blue-1); margin-top: 2px; }
 
     /* Divider */
-    .divider { display:flex;align-items:center;gap:10px;margin:20px 0; }
-    .divider::before,.divider::after { content:'';flex:1;height:1px;background:var(--border); }
-    .divider span { font-size:11px;color:var(--muted);font-family:'DM Mono',monospace;white-space:nowrap; }
+    .form-divider {
+      height: 1px;
+      background: var(--rule);
+      margin: 24px 0;
+      position: relative;
+    }
+    .form-divider::after {
+      content: 'VEHICLE';
+      position: absolute;
+      top: 50%;
+      left: 0;
+      transform: translateY(-50%);
+      background: var(--form-bg);
+      padding-right: 12px;
+      font-family: 'Courier Prime', monospace;
+      font-size: 10px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--ink-3);
+    }
 
-    /* Submit */
+    /* Vehicle preview strip */
+    .vehicle-strip {
+      border: 1px solid var(--rule);
+      background: #fff;
+      padding: 14px 16px;
+      margin-top: 10px;
+      display: none;
+    }
+    .vehicle-strip.show { display: flex; align-items: center; gap: 20px; }
+    .vstrip-name { font-size: 13px; font-weight: 600; flex: 1; color: var(--ink); }
+    .vstrip-specs { display: flex; gap: 16px; }
+    .vstrip-spec .v { font-family: 'Courier Prime', monospace; font-size: 13px; color: var(--blue-1); font-weight: 700; }
+    .vstrip-spec .l { font-family: 'Courier Prime', monospace; font-size: 9px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-3); }
+
+    /* Submit button */
     .btn-submit {
-      width:100%;padding:15px;border:none;border-radius:12px;
-      font-family:'Space Grotesk',sans-serif;font-size:15px;font-weight:600;color:var(--bg);
-      background:linear-gradient(90deg,var(--accent) 0%,var(--eco) 100%);
-      cursor:pointer;position:relative;overflow:hidden;transition:transform .2s,box-shadow .2s;
-      box-shadow:0 0 24px rgba(0,212,255,.25);
+      width: 100%;
+      padding: 15px 20px;
+      background: var(--ink);
+      color: var(--paper);
+      border: 2px solid var(--ink);
+      font-family: 'Outfit', sans-serif;
+      font-size: 15px;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+      cursor: pointer;
+      border-radius: 0;
+      transition: background 0.15s, color 0.15s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      margin-top: 28px;
     }
-    .btn-submit:hover { transform:translateY(-2px);box-shadow:0 4px 32px rgba(0,212,255,.40); }
-    .btn-submit:active { transform:translateY(0); }
-    .btn-submit .shimmer { position:absolute;top:0;left:-60%;width:40%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.3),transparent);animation:shimmer 2.5s infinite; }
-    @keyframes shimmer { 0%{left:-60%}100%{left:120%} }
-    .btn-inner { display:flex;align-items:center;justify-content:center;gap:8px;position:relative; }
-    .btn-submit.loading { pointer-events:none;opacity:.8; }
-    .spinner { display:none;width:16px;height:16px;border:2px solid rgba(6,8,15,.3);border-top-color:var(--bg);border-radius:50%;animation:spin .7s linear infinite; }
-    .btn-submit.loading .spinner { display:block; }
-    .btn-submit.loading .btn-text { display:none; }
-    @keyframes spin { to{transform:rotate(360deg)} }
-    .form-note { text-align:center;font-size:12px;color:var(--muted);margin-top:16px; }
+    .btn-submit:hover {
+      background: var(--blue-1);
+      border-color: var(--blue-1);
+    }
+    .btn-submit.loading { opacity: 0.7; pointer-events: none; }
+    .btn-submit .btn-text {}
+    .btn-submit .spinner {
+      display: none;
+      width: 15px; height: 15px;
+      border: 2px solid rgba(244,241,236,0.3);
+      border-top-color: var(--paper);
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+    .btn-submit.loading .btn-text { display: none; }
+    .btn-submit.loading .spinner { display: block; }
+    @keyframes spin { to { transform: rotate(360deg); } }
 
-    /* Responsive */
-    @media(max-width:960px) {
-      .page-wrap{grid-template-columns:1fr;}
-      .hero{padding:50px 30px 30px;}
-      .hero-title{font-size:36px;}
-      .form-panel{padding:20px 30px 50px;}
-    }
-    @media(max-width:540px) {
-      .hero{padding:40px 20px 20px;}
-      .form-panel{padding:10px 16px 40px;}
-      .card{padding:28px 20px;border-radius:18px;}
-      .grid-2{grid-template-columns:1fr;}
+    .form-footnote {
+      font-family: 'Courier Prime', monospace;
+      font-size: 10px;
+      letter-spacing: 0.06em;
+      color: var(--ink-3);
+      text-align: center;
+      margin-top: 16px;
     }
 
-    .fade-up { opacity:0;transform:translateY(24px);animation:fadeUp .7s ease forwards; }
-    .fade-up:nth-child(1){animation-delay:.0s}.fade-up:nth-child(2){animation-delay:.1s}
-    .fade-up:nth-child(3){animation-delay:.2s}.fade-up:nth-child(4){animation-delay:.3s}
-    .fade-up:nth-child(5){animation-delay:.4s}
-    @keyframes fadeUp { to{opacity:1;transform:none} }
+    /* ── Responsive ── */
+    @media (max-width: 1100px) {
+      .shell { grid-template-columns: 1fr 420px; }
+    }
+    @media (max-width: 900px) {
+      .shell { grid-template-columns: 1fr; grid-template-rows: auto auto auto; }
+      .masthead { padding: 0 24px; }
+      .content-left { padding: 40px 24px; border-right: none; border-bottom: 1px solid var(--rule); }
+      .form-panel { border-left: none; border-top: 2px solid var(--ink); padding: 40px 24px; }
+      .headline { font-size: 38px; }
+      .factoids { max-width: 100%; }
+    }
+    @media (max-width: 540px) {
+      .masthead-nav { display: none; }
+      .brand-tagline { display: none; }
+      .grid-2 { grid-template-columns: 1fr; }
+      .factoids { grid-template-columns: 1fr 1fr; }
+    }
   </style>
 </head>
 <body>
-  <div class="bg-grid"></div>
-  <div class="bg-orb bg-orb-1"></div>
-  <div class="bg-orb bg-orb-2"></div>
-  <div class="bg-orb bg-orb-3"></div>
+<div class="shell">
 
-  <div class="page-wrap">
-    <!-- LEFT HERO -->
-    <div class="hero">
-      <div class="logo-mark fade-up">
-        <div class="logo-icon">🛣️</div>
-        <span class="logo-text">MyRoute</span>
+  <!-- Masthead -->
+  <header class="masthead">
+    <div class="masthead-brand">
+      <div class="brand-mark">◎</div>
+      <span class="brand-name">MyRoute</span>
+    </div>
+    <span class="brand-tagline">Physics-based fuel optimisation</span>
+    <nav class="masthead-nav">
+      <span class="nav-item">Eco Routing</span>
+      <span class="nav-item">Vehicle Physics</span>
+      <span class="nav-item">CO₂ Tracking</span>
+    </nav>
+  </header>
+
+  <!-- Left editorial content -->
+  <main class="content-left">
+    <p class="issue-label">Smarter navigation</p>
+
+    <h1 class="headline">
+      The route that burns<br><em>least,</em> not fastest.
+    </h1>
+
+    <p class="standfirst">
+      MyRoute models your exact vehicle's aerodynamics, weight, rolling resistance and engine
+      efficiency to find the path that genuinely uses the least fuel — something no conventional
+      navigation app does.
+    </p>
+
+    <div class="factoids">
+      <div class="factoid">
+        <div class="factoid-num">40+</div>
+        <div class="factoid-label">Real vehicles in database</div>
       </div>
-      <p class="hero-eyebrow fade-up">Physics-based route optimisation</p>
-      <h1 class="hero-title fade-up">Drive further.<br><span class="line-2">Burn less.</span></h1>
-      <p class="hero-sub fade-up">MyRoute models your exact car's aerodynamics, weight, rolling resistance, and engine efficiency to find the route that uses the least fuel — not just the fastest path.</p>
-      <div class="features">
-        <div class="feature fade-up">
-          <div class="feature-icon">⚙️</div>
-          <div class="feature-text"><h4>Real vehicle physics</h4><p>Drag coefficients, rolling resistance, and slope grades calculated per-segment.</p></div>
-        </div>
-        <div class="feature fade-up">
-          <div class="feature-icon">🏔️</div>
-          <div class="feature-text"><h4>Elevation-aware routing</h4><p>Uphills cost fuel; downhills regenerate (for EVs) or engine-brake efficiently.</p></div>
-        </div>
-        <div class="feature fade-up">
-          <div class="feature-icon">🌿</div>
-          <div class="feature-text"><h4>Three route types</h4><p>Eco, Fastest, and Balanced — compare CO₂, cost, and time side by side.</p></div>
-        </div>
+      <div class="factoid">
+        <div class="factoid-num">7×</div>
+        <div class="factoid-label">Routes evaluated per search</div>
+      </div>
+      <div class="factoid">
+        <div class="factoid-num">3</div>
+        <div class="factoid-label">Physics forces modelled</div>
       </div>
     </div>
 
-    <!-- RIGHT FORM -->
-    <div class="form-panel">
-      <div class="card">
-        <div class="card-header">
-          <h2>Plan Your Journey</h2>
-          <p>Enter your route and vehicle to get started.</p>
+    <div class="points">
+      <div class="point">
+        <span class="point-index">01</span>
+        <div class="point-body">
+          <h4>Aerodynamic drag, calculated per segment</h4>
+          <p>Drag force scales with the square of speed. MyRoute penalises high-speed motorway segments for your specific drag coefficient and frontal area.</p>
         </div>
-
-        <form id="routeForm" action="/results" method="GET">
-          <!-- Hidden resolved coordinates — passed to backend to skip geocoding -->
-          <input type="hidden" name="start_lat" id="start_lat">
-          <input type="hidden" name="start_lon" id="start_lon">
-          <input type="hidden" name="end_lat"   id="end_lat">
-          <input type="hidden" name="end_lon"   id="end_lon">
-
-          <div class="form-section">
-            <span class="section-label">Route</span>
-
-            <div class="field autocomplete-wrap" id="field-start">
-              <span class="field-icon">📍</span>
-              <input type="text" name="start" id="start" placeholder="Starting location" required autocomplete="off">
-              <span class="confirm-tick">✓</span>
-              <ul class="ac-list" id="ac-start"></ul>
-            </div>
-
-            <div class="field autocomplete-wrap" id="field-end">
-              <span class="field-icon">🏁</span>
-              <input type="text" name="end" id="end" placeholder="Destination" required autocomplete="off">
-              <span class="confirm-tick">✓</span>
-              <ul class="ac-list" id="ac-end"></ul>
-            </div>
-          </div>
-
-          <div class="divider"><span>your vehicle</span></div>
-
-          <div class="form-section">
-            <span class="section-label">Make &amp; Model</span>
-            <div class="grid-2">
-              <div class="field">
-                <span class="field-icon">🚘</span>
-                <select name="make" id="makeSelect" required>
-                  <option value="" disabled selected>Make</option>
-                  {% for make in makes %}
-                  <option value="{{ make }}">{{ make }}</option>
-                  {% endfor %}
-                </select>
-              </div>
-              <div class="field">
-                <span class="field-icon">🔖</span>
-                <select name="model" id="modelSelect" required>
-                  <option value="" disabled selected>Model</option>
-                </select>
-              </div>
-            </div>
-
-            <div class="vehicle-preview" id="vehiclePreview">
-              <div class="vp-name" id="vpName">—</div>
-              <div class="vp-specs">
-                <div class="vp-spec"><div class="val" id="vpWeight">—</div><div class="lbl">Weight (kg)</div></div>
-                <div class="vp-spec"><div class="val" id="vpDrag">—</div><div class="lbl">Drag Cd</div></div>
-                <div class="vp-spec"><div class="val" id="vpEff">—</div><div class="lbl">Engine eff.</div></div>
-              </div>
-            </div>
-          </div>
-
-          <button type="submit" class="btn-submit" id="submitBtn">
-            <div class="shimmer"></div>
-            <div class="btn-inner">
-              <span class="btn-text">Find Optimal Routes →</span>
-              <div class="spinner"></div>
-            </div>
-          </button>
-        </form>
-
-        <p class="form-note">Powered by OpenRouteService &amp; real vehicle specs</p>
+      </div>
+      <div class="point">
+        <span class="point-index">02</span>
+        <div class="point-body">
+          <h4>Elevation-aware fuel modelling</h4>
+          <p>Uphills cost extra fuel; downhills provide engine-braking recovery. The model accounts for gradient on every road segment.</p>
+        </div>
+      </div>
+      <div class="point">
+        <span class="point-index">03</span>
+        <div class="point-body">
+          <h4>Stop-and-go traffic detection</h4>
+          <p>Junctions, turns and traffic lights are detected from route instructions and contribute idle and acceleration fuel costs.</p>
+        </div>
       </div>
     </div>
-  </div>
+  </main>
 
-  <script>
-  // ─── AUTOCOMPLETE ENGINE ───────────────────────────────────────────────────
-  function makeAutocomplete(cfg) {
-    // cfg: { inputId, listId, latId, lonId, fieldId }
-    const input  = document.getElementById(cfg.inputId);
-    const list   = document.getElementById(cfg.listId);
-    const latEl  = document.getElementById(cfg.latId);
-    const lonEl  = document.getElementById(cfg.lonId);
-    const field  = document.getElementById(cfg.fieldId);
+  <!-- Right form panel -->
+  <aside class="form-panel">
+    <h2 class="form-panel-title">Plan your journey</h2>
+    <p class="form-panel-sub">Enter a route and your vehicle to get started.</p>
 
-    let debounceTimer = null;
-    let suggestions   = [];
-    let highlightIdx  = -1;
-    let locked        = false;  // true once user picked a result
+    <form id="routeForm" action="/results" method="GET">
+      <input type="hidden" name="start_lat" id="start_lat">
+      <input type="hidden" name="start_lon" id="start_lon">
+      <input type="hidden" name="end_lat"   id="end_lat">
+      <input type="hidden" name="end_lon"   id="end_lon">
 
-    const openList  = () => list.classList.add('open');
-    const closeList = () => { list.classList.remove('open'); highlightIdx = -1; };
+      <div class="field-group">
+        <span class="field-group-label">Origin &amp; Destination</span>
 
-    function confirmLocation(lat, lon) {
-      latEl.value = lat;
-      lonEl.value = lon;
-      locked = true;
-      field.classList.add('field-confirmed');
-    }
+        <div class="field autocomplete-wrap" id="field-start">
+          <div class="field-prefix">A</div>
+          <input type="text" name="start" id="start" placeholder="Starting location" required autocomplete="off">
+          <span class="confirm-tick">✓</span>
+          <ul class="ac-list" id="ac-start"></ul>
+        </div>
 
-    function resetLock() {
-      latEl.value = '';
-      lonEl.value = '';
-      locked = false;
-      field.classList.remove('field-confirmed');
-    }
+        <div class="field autocomplete-wrap" id="field-end">
+          <div class="field-prefix">B</div>
+          <input type="text" name="end" id="end" placeholder="Destination" required autocomplete="off">
+          <span class="confirm-tick">✓</span>
+          <ul class="ac-list" id="ac-end"></ul>
+        </div>
+      </div>
 
-    function updateHighlight() {
-      Array.from(list.children).forEach((li, i) =>
-        li.classList.toggle('highlighted', i === highlightIdx));
-    }
+      <div class="form-divider"></div>
 
-    function pickItem(idx) {
-      const s = suggestions[idx];
-      if (!s) return;
-      input.value = s.short;
-      confirmLocation(s.lat, s.lon);
-      closeList();
-    }
+      <div class="field-group" style="margin-top: 28px; margin-bottom: 0;">
+        <div class="grid-2">
+          <div class="field">
+            <div class="field-prefix" style="font-size:13px;">▸</div>
+            <select name="make" id="makeSelect" required>
+              <option value="" disabled selected>Make</option>
+              {% for make in makes %}
+              <option value="{{ make }}">{{ make }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="field">
+            <div class="field-prefix" style="font-size:13px;">▸</div>
+            <select name="model" id="modelSelect" required>
+              <option value="" disabled selected>Model</option>
+            </select>
+          </div>
+        </div>
 
-    function renderList(items) {
-      list.innerHTML = '';
-      highlightIdx = -1;
-      if (!items.length) { closeList(); return; }
-      suggestions = items;
+        <div class="vehicle-strip" id="vehiclePreview">
+          <div class="vstrip-name" id="vpName">—</div>
+          <div class="vstrip-specs">
+            <div class="vstrip-spec">
+              <div class="v" id="vpWeight">—</div>
+              <div class="l">kg</div>
+            </div>
+            <div class="vstrip-spec">
+              <div class="v" id="vpDrag">—</div>
+              <div class="l">Cd</div>
+            </div>
+            <div class="vstrip-spec">
+              <div class="v" id="vpEff">—</div>
+              <div class="l">eff</div>
+            </div>
+          </div>
+        </div>
+      </div>
 
-      items.forEach((s, i) => {
-        const li = document.createElement('li');
-        const truncFull = s.display.length > 90
-          ? s.display.slice(0, 90) + '…' : s.display;
-        li.innerHTML =
-          `<div class="ac-short">${escHtml(s.short)}</div>` +
-          `<div class="ac-full">${escHtml(truncFull)}</div>` +
-          `<div class="ac-coords">${s.lat.toFixed(5)}, ${s.lon.toFixed(5)}</div>`;
-        li.addEventListener('mousedown', e => { e.preventDefault(); pickItem(i); });
-        list.appendChild(li);
-      });
-      openList();
-    }
+      <button type="submit" class="btn-submit" id="submitBtn">
+        <span class="btn-text">Calculate optimal route →</span>
+        <div class="spinner"></div>
+      </button>
+    </form>
 
-    async function doSearch(q) {
-      try {
-        const res  = await fetch(`/api/autocomplete?q=${encodeURIComponent(q)}`);
-        const data = await res.json();
-        renderList(data);
-      } catch(err) {
-        console.error('Autocomplete error:', err);
-      }
-    }
+    <p class="form-footnote">Routing via OpenRouteService · Geocoding via Nominatim</p>
+  </aside>
 
-    // Keyboard navigation
-    input.addEventListener('keydown', e => {
-      if (!list.classList.contains('open')) return;
-      if (e.key === 'ArrowDown') {
-        e.preventDefault();
-        highlightIdx = Math.min(highlightIdx + 1, suggestions.length - 1);
-        updateHighlight();
-      } else if (e.key === 'ArrowUp') {
-        e.preventDefault();
-        highlightIdx = Math.max(highlightIdx - 1, 0);
-        updateHighlight();
-      } else if (e.key === 'Enter' && highlightIdx >= 0) {
-        e.preventDefault();
-        pickItem(highlightIdx);
-      } else if (e.key === 'Escape') {
-        closeList();
-      }
-    });
+</div>
 
-    // Typing
-    input.addEventListener('input', () => {
-      resetLock();
-      const q = input.value.trim();
-      clearTimeout(debounceTimer);
-      if (q.length < 2) { closeList(); suggestions = []; return; }
-      // Debounce 300ms to avoid hammering Nominatim
-      debounceTimer = setTimeout(() => doSearch(q), 300);
-    });
+<script>
+// ── AUTOCOMPLETE ───────────────────────────────────────────────────────────────
+function makeAutocomplete(cfg) {
+  const input   = document.getElementById(cfg.inputId);
+  const list    = document.getElementById(cfg.listId);
+  const latEl   = document.getElementById(cfg.latId);
+  const lonEl   = document.getElementById(cfg.lonId);
+  const field   = document.getElementById(cfg.fieldId);
 
-    // Re-open on focus if we have stale results
-    input.addEventListener('focus', () => {
-      if (suggestions.length && !locked) openList();
-    });
+  let timer       = null;
+  let suggestions = [];
+  let cursor      = -1;
+  let locked      = false;
 
-    // Close on outside click
-    document.addEventListener('click', e => {
-      if (!field.contains(e.target)) closeList();
-    });
+  function openList()  { list.classList.add('open'); }
+  function closeList() { list.classList.remove('open'); cursor = -1; }
+
+  function confirmLoc(lat, lon) {
+    latEl.value = lat; lonEl.value = lon;
+    locked = true;
+    field.classList.add('field-confirmed');
+  }
+  function clearLoc() {
+    latEl.value = ''; lonEl.value = '';
+    locked = false;
+    field.classList.remove('field-confirmed');
   }
 
-  function escHtml(str) {
-    return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  function updateCursor() {
+    Array.from(list.children).forEach((li, i) =>
+      li.classList.toggle('highlighted', i === cursor));
   }
 
-  makeAutocomplete({ inputId:'start', listId:'ac-start', latId:'start_lat', lonId:'start_lon', fieldId:'field-start' });
-  makeAutocomplete({ inputId:'end',   listId:'ac-end',   latId:'end_lat',   lonId:'end_lon',   fieldId:'field-end'   });
+  function pick(idx) {
+    const s = suggestions[idx];
+    if (!s) return;
+    input.value = s.short;
+    confirmLoc(s.lat, s.lon);
+    closeList();
+  }
 
-  // ─── VEHICLE DROPDOWNS ────────────────────────────────────────────────────
-  const makeEl   = document.getElementById('makeSelect');
-  const modelEl  = document.getElementById('modelSelect');
-  const preview  = document.getElementById('vehiclePreview');
-  const vpName   = document.getElementById('vpName');
-  const vpWeight = document.getElementById('vpWeight');
-  const vpDrag   = document.getElementById('vpDrag');
-  const vpEff    = document.getElementById('vpEff');
-
-  makeEl.addEventListener('change', async () => {
-    modelEl.innerHTML = '<option value="" disabled selected>Loading…</option>';
-    preview.classList.remove('show');
-    const res    = await fetch(`/api/models?make=${encodeURIComponent(makeEl.value)}`);
-    const models = await res.json();
-    modelEl.innerHTML = '<option value="" disabled selected>Model</option>';
-    models.forEach(m => {
-      const opt = document.createElement('option');
-      opt.value = m; opt.textContent = m;
-      modelEl.appendChild(opt);
+  function render(items) {
+    list.innerHTML = ''; cursor = -1;
+    if (!items.length) { closeList(); return; }
+    suggestions = items;
+    items.forEach(function(s, i) {
+      const li = document.createElement('li');
+      const full = s.display.length > 80 ? s.display.slice(0, 80) + '…' : s.display;
+      li.innerHTML =
+        '<div class="ac-short">' + esc(s.short) + '</div>' +
+        '<div class="ac-full">'  + esc(full)    + '</div>' +
+        '<div class="ac-coords">' + s.lat.toFixed(4) + ', ' + s.lon.toFixed(4) + '</div>';
+      li.addEventListener('mousedown', function(e) { e.preventDefault(); pick(i); });
+      list.appendChild(li);
     });
+    openList();
+  }
+
+  async function search(q) {
+    try {
+      const res  = await fetch('/api/autocomplete?q=' + encodeURIComponent(q));
+      const data = await res.json();
+      render(data);
+    } catch(e) { console.error(e); }
+  }
+
+  input.addEventListener('keydown', function(e) {
+    if (!list.classList.contains('open')) return;
+    if (e.key === 'ArrowDown')  { e.preventDefault(); cursor = Math.min(cursor+1, suggestions.length-1); updateCursor(); }
+    else if (e.key === 'ArrowUp')   { e.preventDefault(); cursor = Math.max(cursor-1, 0); updateCursor(); }
+    else if (e.key === 'Enter' && cursor >= 0) { e.preventDefault(); pick(cursor); }
+    else if (e.key === 'Escape') { closeList(); }
   });
 
-  modelEl.addEventListener('change', async () => {
-    const make  = makeEl.value;
-    const model = modelEl.value;
-    if (!make || !model) return;
-    const res   = await fetch('/api/cars');
-    const data  = await res.json();
-    const specs = data[make]?.[model];
-    if (!specs) return;
-    vpName.textContent   = `${make} ${model}`;
-    vpWeight.textContent = specs.weight;
-    vpDrag.textContent   = specs.drag_coefficient;
-    vpEff.textContent    = (specs.efficiency * 100).toFixed(0) + '%';
-    preview.classList.add('show');
+  input.addEventListener('input', function() {
+    clearLoc();
+    const q = input.value.trim();
+    clearTimeout(timer);
+    if (q.length < 2) { closeList(); suggestions = []; return; }
+    timer = setTimeout(function() { search(q); }, 300);
   });
 
-  // ─── LOADING STATE ────────────────────────────────────────────────────────
-  document.getElementById('routeForm').addEventListener('submit', () => {
-    document.getElementById('submitBtn').classList.add('loading');
+  input.addEventListener('focus', function() {
+    if (suggestions.length && !locked) openList();
   });
-  </script>
+
+  document.addEventListener('click', function(e) {
+    if (!field.contains(e.target)) closeList();
+  });
+}
+
+function esc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+makeAutocomplete({ inputId:'start', listId:'ac-start', latId:'start_lat', lonId:'start_lon', fieldId:'field-start' });
+makeAutocomplete({ inputId:'end',   listId:'ac-end',   latId:'end_lat',   lonId:'end_lon',   fieldId:'field-end'   });
+
+// ── VEHICLE DROPDOWNS ──────────────────────────────────────────────────────────
+const makeEl    = document.getElementById('makeSelect');
+const modelEl   = document.getElementById('modelSelect');
+const preview   = document.getElementById('vehiclePreview');
+
+makeEl.addEventListener('change', async function() {
+  modelEl.innerHTML = '<option value="" disabled selected>Loading…</option>';
+  preview.classList.remove('show');
+  const res    = await fetch('/api/models?make=' + encodeURIComponent(makeEl.value));
+  const models = await res.json();
+  modelEl.innerHTML = '<option value="" disabled selected>Model</option>';
+  models.forEach(function(m) {
+    const o = document.createElement('option');
+    o.value = m; o.textContent = m;
+    modelEl.appendChild(o);
+  });
+});
+
+modelEl.addEventListener('change', async function() {
+  const make = makeEl.value, model = modelEl.value;
+  if (!make || !model) return;
+  const res  = await fetch('/api/cars');
+  const data = await res.json();
+  const s    = data[make] && data[make][model];
+  if (!s) return;
+  document.getElementById('vpName').textContent   = make + ' ' + model;
+  document.getElementById('vpWeight').textContent = s.weight;
+  document.getElementById('vpDrag').textContent   = s.drag_coefficient;
+  document.getElementById('vpEff').textContent    = Math.round(s.efficiency * 100) + '%';
+  preview.classList.add('show');
+});
+
+document.getElementById('routeForm').addEventListener('submit', function() {
+  document.getElementById('submitBtn').classList.add('loading');
+});
+</script>
 </body>
 </html>
