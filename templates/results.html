@@ -5,627 +5,443 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Route Results — MyRoute</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Outfit:wght@300;400;500;600&family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Outfit:wght@300;400;500;600&family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
   <style>
     :root {
       --blue-1: #78A2CC;
-      --blue-2: #88AED0;
       --blue-3: #96B9D0;
-      --blue-4: #A4C3D2;
-      --blue-5: #AECBD6;
       --blue-6: #BFD4DB;
       --paper:  #F4F1EC;
       --ink:    #1C2B3A;
       --ink-2:  #3A5068;
       --ink-3:  #6B8299;
-      --rule:   #D0D8E0;
-      --eco-ink:#2E6B4F;
+      --rule:   #D8DFE6;
+      --eco-fg: #2E6B4F;
       --eco-bg: #EAF5EE;
     }
 
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    html { font-size: 16px; }
-    body {
-      background: var(--paper);
-      color: var(--ink);
-      font-family: 'Outfit', sans-serif;
-      min-height: 100vh;
-    }
+    body { background: var(--paper); color: var(--ink); font-family: 'Outfit', sans-serif; min-height: 100vh; }
 
-    body::before {
-      content: '';
-      position: fixed;
-      inset: 0;
-      z-index: 0;
-      opacity: 0.04;
-      background-image:
-        repeating-linear-gradient(0deg, transparent, transparent 39px, var(--blue-1) 39px, var(--blue-1) 40px),
-        repeating-linear-gradient(90deg, transparent, transparent 79px, var(--blue-1) 79px, var(--blue-1) 80px);
-      pointer-events: none;
-    }
-
-    .page { position: relative; z-index: 1; max-width: 1480px; margin: 0 auto; }
-
-    /* ── Masthead ── */
-    .masthead {
-      border-bottom: 2px solid var(--ink);
-      padding: 0 40px;
-      display: flex;
-      align-items: stretch;
-      justify-content: space-between;
-    }
-    .masthead-brand {
-      display: flex; align-items: center; gap: 12px;
-      padding: 18px 0;
-      border-right: 1px solid var(--rule);
-      padding-right: 28px;
-      text-decoration: none;
-      color: var(--ink);
-    }
-    .brand-mark { width: 34px; height: 34px; border: 2px solid var(--ink); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; }
-    .brand-name { font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 700; }
-    .route-crumb {
+    /* ── Top bar ── */
+    .topbar {
+      height: 52px;
+      border-bottom: 1px solid var(--rule);
       display: flex;
       align-items: center;
-      padding: 0 28px;
+      justify-content: space-between;
+      padding: 0 32px;
+      background: #fff;
+    }
+    .tb-brand {
+      font-family: 'Playfair Display', serif;
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--blue-1);
+      text-decoration: none;
+    }
+    .tb-route {
       font-family: 'Courier Prime', monospace;
       font-size: 12px;
       color: var(--ink-3);
-      gap: 8px;
-      flex: 1;
-    }
-    .route-crumb strong { color: var(--ink); font-weight: 700; }
-    .route-crumb .arrow { color: var(--blue-1); }
-    .masthead-back {
-      display: flex; align-items: center;
-      padding: 0 28px;
-      font-family: 'Courier Prime', monospace;
-      font-size: 11px;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      color: var(--ink-3);
-      text-decoration: none;
-      border-left: 1px solid var(--rule);
-      transition: color 0.15s;
-    }
-    .masthead-back:hover { color: var(--blue-1); }
-
-    /* ── Main layout: 3-col ── */
-    .body-grid {
-      display: grid;
-      grid-template-columns: 300px 1fr 320px;
-      grid-template-rows: auto 1fr;
-      min-height: calc(100vh - 56px);
-      border-left: 0;
-    }
-
-    /* ── Left sidebar ── */
-    .sidebar-left {
-      border-right: 1px solid var(--rule);
-      padding: 28px 24px;
-      display: flex;
-      flex-direction: column;
-      gap: 0;
-    }
-
-    .sidebar-heading {
-      font-family: 'Courier Prime', monospace;
-      font-size: 10px;
-      letter-spacing: 0.16em;
-      text-transform: uppercase;
-      color: var(--ink-3);
-      margin-bottom: 16px;
-      padding-bottom: 12px;
-      border-bottom: 1px solid var(--rule);
-    }
-
-    /* Route selector tabs */
-    .route-selector { margin-bottom: 28px; }
-    .route-btn {
-      width: 100%;
-      padding: 14px 16px;
-      background: none;
-      border: 1px solid var(--rule);
-      border-bottom: none;
-      cursor: pointer;
-      text-align: left;
-      font-family: 'Outfit', sans-serif;
-      transition: background 0.12s;
-      position: relative;
-    }
-    .route-btn:last-child { border-bottom: 1px solid var(--rule); }
-    .route-btn:hover { background: rgba(120,162,204,0.06); }
-    .route-btn.active {
-      background: var(--ink);
-      border-color: var(--ink);
-      color: var(--paper);
-    }
-    .route-btn.active + .route-btn { border-top-color: var(--ink); }
-    .rb-label {
-      font-family: 'Courier Prime', monospace;
-      font-size: 10px;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      margin-bottom: 4px;
-      opacity: 0.7;
-    }
-    .route-btn.active .rb-label { opacity: 0.6; }
-    .rb-title { font-size: 16px; font-weight: 600; margin-bottom: 6px; }
-    .rb-stats { font-family: 'Courier Prime', monospace; font-size: 11px; opacity: 0.6; }
-    .rb-badge {
-      position: absolute;
-      top: 12px; right: 12px;
-      font-family: 'Courier Prime', monospace;
-      font-size: 9px;
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
-      padding: 2px 7px;
-      border: 1px solid currentColor;
-      opacity: 0.5;
-    }
-
-    /* Metrics list */
-    .metrics-section { margin-bottom: 28px; }
-    .metric-item {
-      display: flex;
-      justify-content: space-between;
-      align-items: baseline;
-      padding: 11px 0;
-      border-bottom: 1px solid var(--rule);
-    }
-    .metric-item:first-child { border-top: 1px solid var(--rule); }
-    .metric-key {
-      font-family: 'Courier Prime', monospace;
-      font-size: 11px;
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
-      color: var(--ink-3);
-    }
-    .metric-val {
-      font-family: 'Playfair Display', serif;
-      font-size: 18px;
-      font-weight: 600;
-      color: var(--ink);
-    }
-    .metric-unit {
-      font-family: 'Courier Prime', monospace;
-      font-size: 10px;
-      color: var(--ink-3);
-      margin-left: 4px;
-    }
-
-    /* Efficiency score */
-    .eff-block {
-      border: 1px solid var(--rule);
-      padding: 16px;
-      margin-bottom: 16px;
       display: flex;
       align-items: center;
-      gap: 16px;
+      gap: 8px;
     }
-    .eff-ring-wrap { position: relative; width: 64px; height: 64px; flex-shrink: 0; }
-    .eff-ring-svg  { transform: rotate(-90deg); }
-    .eff-ring-bg   { fill: none; stroke: var(--rule); stroke-width: 6; }
-    .eff-ring-fg   { fill: none; stroke-width: 6; stroke-linecap: round; stroke-dasharray: 176; stroke-dashoffset: 176; transition: stroke-dashoffset 0.9s ease, stroke 0.3s; }
-    .eff-ring-text { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-    .eff-ring-num  { font-family: 'Playfair Display', serif; font-size: 18px; font-weight: 700; line-height: 1; }
-    .eff-ring-lbl  { font-family: 'Courier Prime', monospace; font-size: 8px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-3); }
-    .eff-desc { font-size: 12px; color: var(--ink-3); line-height: 1.5; }
-    .eff-desc strong { color: var(--ink); font-weight: 600; }
-
-    /* Fuel bars */
-    .fuel-section { margin-bottom: 0; }
-    .fuel-bar { margin-bottom: 12px; }
-    .fuel-bar:last-child { margin-bottom: 0; }
-    .fuel-bar-header { display: flex; justify-content: space-between; margin-bottom: 5px; }
-    .fuel-bar-label { font-family: 'Courier Prime', monospace; font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-3); }
-    .fuel-bar-val   { font-family: 'Courier Prime', monospace; font-size: 10px; font-weight: 700; color: var(--ink-2); }
-    .fuel-track { height: 3px; background: var(--rule); }
-    .fuel-fill  { height: 100%; width: 0%; transition: width 0.6s ease; }
-    .fuel-fill.idle   { background: var(--blue-1); }
-    .fuel-fill.accel  { background: var(--blue-3); }
-    .fuel-fill.cruise { background: var(--blue-6); border: 1px solid var(--blue-4); }
-
-    /* Steps toggle */
-    .steps-toggle {
-      width: 100%;
-      margin-top: 20px;
-      padding: 10px 14px;
-      background: none;
-      border: 1px solid var(--rule);
+    .tb-route strong { color: var(--ink); font-weight: 700; }
+    .tb-back {
       font-family: 'Courier Prime', monospace;
       font-size: 11px;
       letter-spacing: 0.08em;
       text-transform: uppercase;
       color: var(--ink-3);
-      cursor: pointer;
-      text-align: left;
-      transition: border-color 0.15s, color 0.15s;
+      text-decoration: none;
     }
-    .steps-toggle:hover { border-color: var(--blue-1); color: var(--blue-1); }
+    .tb-back:hover { color: var(--blue-1); }
 
-    /* Steps panel */
-    .steps-panel { display: none; margin-top: 8px; }
-    .steps-panel.open { display: block; }
-    .step-item { display: flex; gap: 10px; padding: 9px 0; border-bottom: 1px solid var(--rule); align-items: flex-start; }
-    .step-item:last-child { border-bottom: none; }
-    .step-num  { font-family: 'Courier Prime', monospace; font-size: 10px; color: var(--ink-3); width: 20px; flex-shrink: 0; padding-top: 2px; }
-    .step-text { font-size: 12px; line-height: 1.45; color: var(--ink-2); }
-    .step-meta { font-family: 'Courier Prime', monospace; font-size: 10px; color: var(--ink-3); margin-top: 2px; }
+    /* ── Main two-column layout ── */
+    .layout {
+      display: grid;
+      grid-template-columns: 360px 1fr;
+      height: calc(100vh - 52px);
+    }
 
-    /* ── Map (centre column) ── */
-    .map-col {
+    /* ── Left panel ── */
+    .panel {
+      background: #fff;
+      border-right: 1px solid var(--rule);
       display: flex;
       flex-direction: column;
-      border-right: 1px solid var(--rule);
+      overflow-y: auto;
     }
-    .map-topbar {
-      padding: 12px 20px;
+
+    /* Route switcher — two plain text tabs at the top */
+    .route-tabs {
+      display: flex;
       border-bottom: 1px solid var(--rule);
+      flex-shrink: 0;
+    }
+    .rtab {
+      flex: 1;
+      padding: 16px 20px;
+      background: none;
+      border: none;
+      border-right: 1px solid var(--rule);
+      cursor: pointer;
+      text-align: left;
+      font-family: 'Outfit', sans-serif;
+      transition: background 0.12s;
+    }
+    .rtab:last-child { border-right: none; }
+    .rtab:hover { background: #f8f9fa; }
+    .rtab.active { background: var(--paper); }
+    .rtab-label {
+      font-family: 'Courier Prime', monospace;
+      font-size: 9px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--ink-3);
+      margin-bottom: 4px;
+    }
+    .rtab.active .rtab-label { color: var(--blue-1); }
+    .rtab-name { font-size: 15px; font-weight: 600; color: var(--ink); }
+    .rtab-sub  { font-family: 'Courier Prime', monospace; font-size: 11px; color: var(--ink-3); margin-top: 3px; }
+
+    /* Panel body — just flat rows, no card wrappers */
+    .panel-body { padding: 28px 24px; flex: 1; }
+
+    /* Efficiency score — inline, not a ring card */
+    .eff-row {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      flex-shrink: 0;
-    }
-    .map-topbar-title {
-      font-family: 'Courier Prime', monospace;
-      font-size: 10px;
-      letter-spacing: 0.14em;
-      text-transform: uppercase;
-      color: var(--ink-3);
-    }
-    .map-legend { display: flex; gap: 16px; }
-    .legend-item { display: flex; align-items: center; gap: 6px; font-family: 'Courier Prime', monospace; font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-3); }
-    .legend-line { width: 24px; height: 2px; }
-    .legend-line.eco  { background: var(--blue-1); }
-    .legend-line.fast { background: var(--ink-3); border-top: 2px dashed var(--ink-3); height: 0; }
-    #map { flex: 1; min-height: 420px; }
-
-    /* ── Right sidebar ── */
-    .sidebar-right {
-      padding: 28px 24px;
-      display: flex;
-      flex-direction: column;
-      gap: 0;
-    }
-
-    /* CO2 callout */
-    .co2-callout {
-      border-left: 3px solid var(--eco-ink);
-      background: var(--eco-bg);
-      padding: 16px 18px;
-      margin-bottom: 28px;
-    }
-    .co2-callout h4 {
-      font-family: 'Playfair Display', serif;
-      font-size: 15px;
-      font-weight: 600;
-      color: var(--eco-ink);
-      margin-bottom: 6px;
-    }
-    .co2-callout p {
-      font-size: 12px;
-      color: var(--eco-ink);
-      opacity: 0.8;
-      line-height: 1.55;
-    }
-    .co2-callout strong { font-weight: 700; opacity: 1; }
-
-    /* Comparison table */
-    .comp-heading {
-      font-family: 'Courier Prime', monospace;
-      font-size: 10px;
-      letter-spacing: 0.16em;
-      text-transform: uppercase;
-      color: var(--ink-3);
-      margin-bottom: 12px;
-      padding-bottom: 10px;
+      padding-bottom: 20px;
+      margin-bottom: 20px;
       border-bottom: 1px solid var(--rule);
     }
+    .eff-label { font-family: 'Courier Prime', monospace; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-3); }
+    .eff-score-wrap { display: flex; align-items: baseline; gap: 6px; }
+    .eff-num { font-family: 'Playfair Display', serif; font-size: 36px; font-weight: 700; color: var(--ink); line-height: 1; }
+    .eff-denom { font-family: 'Courier Prime', monospace; font-size: 12px; color: var(--ink-3); }
 
-    .comp-table {
-      width: 100%;
-      border-collapse: collapse;
+    /* Metric rows — two-column text grid */
+    .metric-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0;
       margin-bottom: 28px;
     }
-    .comp-table th {
+    .metric {
+      padding: 14px 0;
+      border-bottom: 1px solid var(--rule);
+    }
+    .metric:nth-child(odd) { padding-right: 16px; border-right: 1px solid var(--rule); }
+    .metric:nth-child(even) { padding-left: 16px; }
+    .metric-key {
       font-family: 'Courier Prime', monospace;
       font-size: 9px;
       letter-spacing: 0.1em;
       text-transform: uppercase;
       color: var(--ink-3);
-      text-align: left;
-      padding: 6px 8px;
+      margin-bottom: 4px;
+    }
+    .metric-val {
+      font-family: 'Playfair Display', serif;
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--ink);
+      line-height: 1.1;
+    }
+    .metric-unit {
+      font-family: 'Courier Prime', monospace;
+      font-size: 10px;
+      color: var(--ink-3);
+      margin-left: 3px;
+    }
+
+    /* Section heading within panel */
+    .section-head {
+      font-family: 'Courier Prime', monospace;
+      font-size: 9px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--ink-3);
+      margin-bottom: 12px;
+    }
+
+    /* Fuel bars — just tracks, no surrounding box */
+    .fuel-bars { margin-bottom: 28px; }
+    .fbar { margin-bottom: 10px; }
+    .fbar:last-child { margin-bottom: 0; }
+    .fbar-top { display: flex; justify-content: space-between; margin-bottom: 4px; }
+    .fbar-name { font-size: 12px; color: var(--ink-3); }
+    .fbar-val  { font-family: 'Courier Prime', monospace; font-size: 11px; color: var(--ink-2); font-weight: 700; }
+    .fbar-track { height: 3px; background: var(--rule); }
+    .fbar-fill  { height: 100%; width: 0; transition: width 0.5s ease; }
+    .fbar-fill.idle   { background: var(--blue-1); }
+    .fbar-fill.accel  { background: var(--blue-3); }
+    .fbar-fill.cruise { background: var(--blue-6); }
+
+    /* CO2 note — a single quiet line, not a card */
+    .co2-note {
+      font-size: 13px;
+      color: var(--eco-fg);
+      line-height: 1.55;
+      padding: 14px 0;
+      border-top: 1px solid var(--rule);
+      border-bottom: 1px solid var(--rule);
+      margin-bottom: 20px;
+    }
+    .co2-note strong { font-weight: 600; }
+
+    /* Comparison table — no outer box, borderless except row lines */
+    .comp-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+    .comp-table th {
+      font-family: 'Courier Prime', monospace;
+      font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase;
+      color: var(--ink-3); text-align: left;
+      padding: 6px 8px 6px 0;
       border-bottom: 1px solid var(--rule);
       font-weight: 400;
     }
     .comp-table td {
-      padding: 10px 8px;
       font-family: 'Courier Prime', monospace;
-      font-size: 12px;
-      color: var(--ink-2);
+      font-size: 12px; color: var(--ink-2);
+      padding: 10px 8px 10px 0;
       border-bottom: 1px solid var(--rule);
     }
     .comp-table tr:last-child td { border-bottom: none; }
-    .comp-table tr:hover td { background: rgba(120,162,204,0.05); }
-    .td-tag { font-size: 10px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; }
-    .td-tag.eco  { color: var(--eco-ink); }
-    .td-tag.fast { color: var(--ink-2); }
-    .td-best { color: var(--eco-ink); font-weight: 700; }
+    .td-tag { font-size: 10px; font-weight: 700; letter-spacing: 0.05em; }
+    .td-tag.eco  { color: var(--eco-fg); }
+    .td-tag.fast { color: var(--ink-3); }
+    .td-best { color: var(--eco-fg); font-weight: 700; }
 
-    /* Vehicle info block */
-    .vehicle-block {
+    /* Context strip — weather + model inputs */
+    .context-strip {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0;
+      margin-bottom: 16px;
       border: 1px solid var(--rule);
-      padding: 16px;
     }
-    .vehicle-block-head {
+    .ctx-item {
+      flex: 1;
+      min-width: 60px;
+      padding: 8px 10px;
+      border-right: 1px solid var(--rule);
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .ctx-item:last-child { border-right: none; }
+    .ctx-key {
       font-family: 'Courier Prime', monospace;
-      font-size: 10px;
-      letter-spacing: 0.14em;
+      font-size: 9px;
+      letter-spacing: 0.1em;
       text-transform: uppercase;
       color: var(--ink-3);
-      margin-bottom: 8px;
     }
-    .vehicle-block-name {
-      font-family: 'Playfair Display', serif;
-      font-size: 18px;
-      font-weight: 600;
-      margin-bottom: 12px;
+    .ctx-val {
+      font-family: 'Courier Prime', monospace;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--ink-2);
     }
-    .vehicle-spec-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 8px;
+
+    /* Steps toggle */
+    .steps-toggle {
+      font-family: 'Courier Prime', monospace;
+      font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase;
+      color: var(--ink-3); background: none; border: none; cursor: pointer;
+      padding: 0; transition: color 0.15s;
     }
-    .vspec { }
-    .vspec .v { font-family: 'Courier Prime', monospace; font-size: 14px; font-weight: 700; color: var(--blue-1); }
-    .vspec .l { font-family: 'Courier Prime', monospace; font-size: 9px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-3); margin-top: 1px; }
+    .steps-toggle:hover { color: var(--blue-1); }
+    .steps-panel { display: none; margin-top: 14px; }
+    .steps-panel.open { display: block; }
+    .step-item { display: flex; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--rule); }
+    .step-item:last-child { border-bottom: none; }
+    .step-num  { font-family: 'Courier Prime', monospace; font-size: 10px; color: var(--ink-3); width: 18px; flex-shrink: 0; padding-top: 1px; }
+    .step-text { font-size: 12px; color: var(--ink-2); line-height: 1.45; }
+    .step-meta { font-family: 'Courier Prime', monospace; font-size: 10px; color: var(--ink-3); margin-top: 1px; }
+
+    /* ── Map ── */
+    #map { height: 100%; width: 100%; }
 
     /* Responsive */
-    @media (max-width: 1200px) {
-      .body-grid { grid-template-columns: 260px 1fr 280px; }
-    }
     @media (max-width: 960px) {
-      .body-grid { grid-template-columns: 1fr; }
-      .sidebar-left  { border-right: none; border-bottom: 1px solid var(--rule); }
-      .map-col { border-right: none; border-bottom: 1px solid var(--rule); min-height: 360px; }
-      .sidebar-right { border-top: none; }
-      #map { min-height: 360px; }
-      .masthead { padding: 0 20px; }
-    }
-    @media (max-width: 640px) {
-      .route-crumb { display: none; }
-      .vehicle-spec-grid { grid-template-columns: 1fr 1fr 1fr; }
+      .layout { grid-template-columns: 1fr; height: auto; }
+      .panel { max-height: none; overflow-y: visible; }
+      #map { height: 400px; }
+      .tb-route { display: none; }
     }
   </style>
 </head>
 <body>
-<div class="page">
 
-  <!-- Masthead -->
-  <header class="masthead">
-    <a href="/" class="masthead-brand">
-      <div class="brand-mark">◎</div>
-      <span class="brand-name">MyRoute</span>
-    </a>
-    <div class="route-crumb">
-      <strong>{{ start }}</strong>
-      <span class="arrow">→</span>
-      <strong>{{ end }}</strong>
-      <span style="margin-left: 8px; opacity: 0.5;">·</span>
-      <span style="margin-left: 8px;">{{ make }} {{ model }}</span>
-    </div>
-    <a href="/" class="masthead-back">← New route</a>
-  </header>
+<!-- Top bar -->
+<div class="topbar">
+  <a href="/" class="tb-brand">MyRoute</a>
+  <div class="tb-route">
+    <strong>{{ start }}</strong>
+    <span>→</span>
+    <strong>{{ end }}</strong>
+    <span style="opacity:0.4; margin: 0 4px">·</span>
+    {{ make }} {{ model }}
+  </div>
+  <a href="/" class="tb-back">← New route</a>
+</div>
 
-  <!-- Body grid -->
-  <div class="body-grid">
+<div class="layout">
 
-    <!-- ── LEFT SIDEBAR ── -->
-    <aside class="sidebar-left">
+  <!-- Left panel -->
+  <div class="panel">
 
-      <div class="route-selector">
-        <p class="sidebar-heading">Select route</p>
-
-        <button class="route-btn active" id="btn-eco" onclick="switchRoute('eco')">
-          <div class="rb-label">Eco Route</div>
-          <div class="rb-title">Most Efficient</div>
-          <div class="rb-stats" id="rb-eco-stats">—</div>
-          <span class="rb-badge">{{ candidates_evaluated }} scored</span>
-        </button>
-
-        <button class="route-btn" id="btn-fastest" onclick="switchRoute('fastest')">
-          <div class="rb-label">Fastest Route</div>
-          <div class="rb-title">Quickest Time</div>
-          <div class="rb-stats" id="rb-fast-stats">—</div>
-        </button>
-      </div>
-
-      <!-- Efficiency ring + score -->
-      <div class="eff-block">
-        <div class="eff-ring-wrap">
-          <svg class="eff-ring-svg" width="64" height="64" viewBox="0 0 64 64">
-            <circle class="eff-ring-bg" cx="32" cy="32" r="28"/>
-            <circle class="eff-ring-fg" id="effRing" cx="32" cy="32" r="28"/>
-          </svg>
-          <div class="eff-ring-text">
-            <span class="eff-ring-num" id="effScore">—</span>
-            <span class="eff-ring-lbl">/100</span>
-          </div>
-        </div>
-        <div class="eff-desc">
-          <strong id="effLabel">Efficiency score</strong><br>
-          Physics-based rating of fuel use per km.
-        </div>
-      </div>
-
-      <!-- Metrics -->
-      <div class="metrics-section">
-        <div class="metric-item">
-          <span class="metric-key">Distance</span>
-          <span><span class="metric-val" id="mDist">—</span><span class="metric-unit">km</span></span>
-        </div>
-        <div class="metric-item">
-          <span class="metric-key">Duration</span>
-          <span><span class="metric-val" id="mDur">—</span><span class="metric-unit">min</span></span>
-        </div>
-        <div class="metric-item">
-          <span class="metric-key">Fuel</span>
-          <span><span class="metric-val" id="mFuel">—</span><span class="metric-unit" id="mFuelUnit">L</span></span>
-        </div>
-        <div class="metric-item">
-          <span class="metric-key">Cost</span>
-          <span><span class="metric-val" id="mCost">—</span><span class="metric-unit">USD</span></span>
-        </div>
-        <div class="metric-item">
-          <span class="metric-key">CO₂</span>
-          <span><span class="metric-val" id="mCO2">—</span><span class="metric-unit">kg</span></span>
-        </div>
-        <div class="metric-item">
-          <span class="metric-key">Avg speed</span>
-          <span><span class="metric-val" id="mSpeed">—</span><span class="metric-unit">km/h</span></span>
-        </div>
-      </div>
-
-      <!-- Fuel bars -->
-      <div class="fuel-section">
-        <p class="sidebar-heading" style="margin-top: 0;">Fuel breakdown</p>
-        <div class="fuel-bar">
-          <div class="fuel-bar-header">
-            <span class="fuel-bar-label">Idling</span>
-            <span class="fuel-bar-val" id="fIdle">—</span>
-          </div>
-          <div class="fuel-track"><div class="fuel-fill idle" id="fIdleBar"></div></div>
-        </div>
-        <div class="fuel-bar">
-          <div class="fuel-bar-header">
-            <span class="fuel-bar-label">Acceleration</span>
-            <span class="fuel-bar-val" id="fAccel">—</span>
-          </div>
-          <div class="fuel-track"><div class="fuel-fill accel" id="fAccelBar"></div></div>
-        </div>
-        <div class="fuel-bar">
-          <div class="fuel-bar-header">
-            <span class="fuel-bar-label">Cruising</span>
-            <span class="fuel-bar-val" id="fCruise">—</span>
-          </div>
-          <div class="fuel-track"><div class="fuel-fill cruise" id="fCruiseBar"></div></div>
-        </div>
-      </div>
-
-      <!-- Steps -->
-      <button class="steps-toggle" id="stepsBtn" onclick="toggleSteps()">
-        Show directions ↓
+    <!-- Route tabs -->
+    <div class="route-tabs">
+      <button class="rtab active" id="btn-eco" onclick="switchRoute('eco')">
+        <div class="rtab-label">Eco Route</div>
+        <div class="rtab-name">Most Efficient</div>
+        <div class="rtab-sub" id="eco-sub">—</div>
       </button>
-      <div class="steps-panel" id="stepsPanel">
-        <ul id="stepList" style="list-style:none;"></ul>
-      </div>
-
-    </aside>
-
-    <!-- ── MAP COLUMN ── -->
-    <div class="map-col">
-      <div class="map-topbar">
-        <span class="map-topbar-title">Route map</span>
-        <div class="map-legend">
-          <div class="legend-item"><div class="legend-line eco"></div>Eco</div>
-          <div class="legend-item"><div class="legend-line fast"></div>Fastest</div>
-        </div>
-      </div>
-      <div id="map"></div>
+      <button class="rtab" id="btn-fastest" onclick="switchRoute('fastest')">
+        <div class="rtab-label">Fastest Route</div>
+        <div class="rtab-name">Quickest Time</div>
+        <div class="rtab-sub" id="fast-sub">—</div>
+      </button>
     </div>
 
-    <!-- ── RIGHT SIDEBAR ── -->
-    <aside class="sidebar-right">
+    <div class="panel-body">
 
-      <!-- CO2 callout -->
+      <!-- Efficiency score -->
+      <div class="eff-row">
+        <span class="eff-label">Efficiency score</span>
+        <div class="eff-score-wrap">
+          <span class="eff-num" id="effNum">—</span>
+          <span class="eff-denom">/100</span>
+        </div>
+      </div>
+
+      <!-- Metrics 2×3 grid -->
+      <div class="metric-grid">
+        <div class="metric">
+          <div class="metric-key">Distance</div>
+          <div><span class="metric-val" id="mDist">—</span><span class="metric-unit">km</span></div>
+        </div>
+        <div class="metric">
+          <div class="metric-key">Duration</div>
+          <div><span class="metric-val" id="mDur">—</span><span class="metric-unit">min</span></div>
+        </div>
+        <div class="metric">
+          <div class="metric-key">Fuel</div>
+          <div><span class="metric-val" id="mFuel">—</span><span class="metric-unit" id="mFuelUnit">L</span></div>
+        </div>
+        <div class="metric">
+          <div class="metric-key">Cost</div>
+          <div><span class="metric-val" id="mCost">—</span><span class="metric-unit">USD</span></div>
+        </div>
+        <div class="metric">
+          <div class="metric-key">CO₂</div>
+          <div><span class="metric-val" id="mCO2">—</span><span class="metric-unit">kg</span></div>
+        </div>
+        <div class="metric">
+          <div class="metric-key">Avg speed</div>
+          <div><span class="metric-val" id="mSpeed">—</span><span class="metric-unit">km/h</span></div>
+        </div>
+      </div>
+
+      <!-- Fuel breakdown -->
+      <div class="section-head">Fuel breakdown</div>
+      <div class="fuel-bars">
+        <div class="fbar">
+          <div class="fbar-top"><span class="fbar-name">Idling</span><span class="fbar-val" id="fIdle">—</span></div>
+          <div class="fbar-track"><div class="fbar-fill idle" id="fIdleBar"></div></div>
+        </div>
+        <div class="fbar">
+          <div class="fbar-top"><span class="fbar-name">Accel &amp; cold-start</span><span class="fbar-val" id="fAccel">—</span></div>
+          <div class="fbar-track"><div class="fbar-fill accel" id="fAccelBar"></div></div>
+        </div>
+        <div class="fbar">
+          <div class="fbar-top"><span class="fbar-name">Cruise &amp; climate</span><span class="fbar-val" id="fCruise">—</span></div>
+          <div class="fbar-track"><div class="fbar-fill cruise" id="fCruiseBar"></div></div>
+        </div>
+      </div>
+
+      <!-- Weather + model context strip -->
+      <div class="context-strip">
+        {% if weather %}
+        <div class="ctx-item">
+          <span class="ctx-key">Temp</span>
+          <span class="ctx-val">{{ weather.temperature_c | round(1) }} °C</span>
+        </div>
+        <div class="ctx-item">
+          <span class="ctx-key">Wind</span>
+          <span class="ctx-val">{{ weather.wind_speed_kmh | round | int }} km/h</span>
+        </div>
+        {% if weather.precipitation_mm > 0 %}
+        <div class="ctx-item">
+          <span class="ctx-key">Rain</span>
+          <span class="ctx-val">{{ weather.precipitation_mm | round(1) }} mm</span>
+        </div>
+        {% endif %}
+        {% else %}
+        <div class="ctx-item"><span class="ctx-key">Weather</span><span class="ctx-val">unavailable</span></div>
+        {% endif %}
+        <div class="ctx-item">
+          <span class="ctx-key">Style</span>
+          <span class="ctx-val" style="text-transform:capitalize;">{{ style }}</span>
+        </div>
+        <div class="ctx-item">
+          <span class="ctx-key">Routes scored</span>
+          <span class="ctx-val">{{ candidates_evaluated }}</span>
+        </div>
+      </div>
+
+      <!-- CO2 saving note -->
       {% set co2_saved  = (fastest.co2_emissions - eco.co2_emissions) | round(2) %}
       {% set fuel_saved = (fastest.total_fuel - eco.total_fuel) | round(2) %}
       {% if co2_saved > 0.01 %}
-      <div class="co2-callout">
-        <h4>Save {{ co2_saved }} kg CO₂</h4>
-        <p>
-          Choosing the eco route over the fastest saves <strong>{{ fuel_saved }} L</strong>
-          of fuel and {{ co2_saved }} kg of CO₂ — equivalent to
-          <strong>{{ ((co2_saved / 0.21) | round | int) }} km</strong> in an average car.
-          Selected from <strong>{{ candidates_evaluated }}</strong> candidate routes.
-        </p>
+      <div class="co2-note">
+        Eco route saves <strong>{{ fuel_saved }}{% if fuel_type == 'electric' %} kWh{% else %} L{% endif %}</strong>
+        and <strong>{{ co2_saved }} kg CO₂</strong> vs fastest.
       </div>
       {% endif %}
 
-      <!-- Comparison table -->
-      <p class="comp-heading">Route comparison</p>
+      <!-- Comparison -->
+      <div class="section-head">Comparison</div>
       <table class="comp-table">
         <thead>
-          <tr>
-            <th></th>
-            <th>Distance</th>
-            <th>Time</th>
-            <th>Fuel</th>
-            <th>CO₂</th>
-          </tr>
+          <tr><th></th><th>Distance</th><th>Time</th><th>Fuel</th><th>CO₂</th></tr>
         </thead>
         <tbody>
           {% for r in comparison %}
           <tr>
-            <td>
-              {% if r.tag == 'eco' %}
-                <span class="td-tag eco">Eco</span>
-              {% else %}
-                <span class="td-tag fast">Fast</span>
-              {% endif %}
-            </td>
+            <td><span class="td-tag {% if r.tag == 'eco' %}eco{% else %}fast{% endif %}">{% if r.tag == 'eco' %}Eco{% else %}Fast{% endif %}</span></td>
             <td {% if r.tag == 'eco' %}class="td-best"{% endif %}>{{ r.distance }} km</td>
             <td {% if r.tag == 'fastest' %}class="td-best"{% endif %}>{{ r.duration | round | int }} min</td>
-            <td {% if r.tag == 'eco' %}class="td-best"{% endif %}>
-              {{ r.total_fuel }} {% if fuel_type == 'electric' %}kWh{% else %}L{% endif %}
-            </td>
+            <td {% if r.tag == 'eco' %}class="td-best"{% endif %}>{{ r.total_fuel }}{% if fuel_type == 'electric' %} kWh{% else %} L{% endif %}</td>
             <td {% if r.tag == 'eco' %}class="td-best"{% endif %}>{{ r.co2 }} kg</td>
           </tr>
           {% endfor %}
         </tbody>
       </table>
 
-      <!-- Vehicle info -->
-      <div class="vehicle-block">
-        <div class="vehicle-block-head">Vehicle</div>
-        <div class="vehicle-block-name">{{ make }} {{ model }}</div>
-        <div class="vehicle-spec-grid">
-          <div class="vspec">
-            <div class="v">{{ specs.weight }}</div>
-            <div class="l">Weight kg</div>
-          </div>
-          <div class="vspec">
-            <div class="v">{{ specs.drag_coefficient }}</div>
-            <div class="l">Drag Cd</div>
-          </div>
-          <div class="vspec">
-            <div class="v">{{ (specs.efficiency * 100) | round | int }}%</div>
-            <div class="l">Engine eff.</div>
-          </div>
-          <div class="vspec">
-            <div class="v">{{ specs.optimal_speed }}</div>
-            <div class="l">Opt. km/h</div>
-          </div>
-          <div class="vspec">
-            <div class="v">{{ specs.fuel_type | capitalize }}</div>
-            <div class="l">Fuel type</div>
-          </div>
-          <div class="vspec">
-            <div class="v">{{ specs.rolling_resistance }}</div>
-            <div class="l">Roll resist.</div>
-          </div>
-        </div>
+      <!-- Turn-by-turn -->
+      <button class="steps-toggle" id="stepsBtn" onclick="toggleSteps()">Show directions ↓</button>
+      <div class="steps-panel" id="stepsPanel">
+        <ul id="stepList" style="list-style:none;"></ul>
       </div>
 
-    </aside>
-  </div><!-- /body-grid -->
-</div><!-- /page -->
+    </div><!-- /panel-body -->
+  </div><!-- /panel -->
+
+  <!-- Map -->
+  <div id="map"></div>
+
+</div>
 
 <script>
-// ── Route data (all values via tojson to prevent None→undefined bugs) ──────────
 const ROUTES = {
   eco: {
     distance:         {{ eco.distance         | tojson }},
@@ -657,95 +473,81 @@ const ROUTES = {
   },
 };
 
-const START_LAT  = {{ eco.start_lat | tojson }};
-const START_LNG  = {{ eco.start_lng | tojson }};
-const END_LAT    = {{ eco.end_lat   | tojson }};
-const END_LNG    = {{ eco.end_lng   | tojson }};
-const FUEL_TYPE  = {{ fuel_type     | tojson }};
+const START_LAT = {{ eco.start_lat | tojson }};
+const START_LNG = {{ eco.start_lng | tojson }};
+const END_LAT   = {{ eco.end_lat   | tojson }};
+const END_LNG   = {{ eco.end_lng   | tojson }};
+const FUEL_TYPE = {{ fuel_type     | tojson }};
 
-// ── Seed tab stat lines ────────────────────────────────────────────────────────
-(function seedTabStats() {
+// Seed tab subtitles
+(function() {
   const e = ROUTES.eco, f = ROUTES.fastest;
-  const unit = FUEL_TYPE === 'electric' ? 'kWh' : 'L';
-  document.getElementById('rb-eco-stats').textContent =
-    (e.total_fuel || '—') + ' ' + unit + ' · ' + Math.round(e.duration || 0) + ' min';
-  document.getElementById('rb-fast-stats').textContent =
-    Math.round(f.duration || 0) + ' min · ' + (f.total_fuel || '—') + ' ' + unit;
+  const u = FUEL_TYPE === 'electric' ? 'kWh' : 'L';
+  document.getElementById('eco-sub').textContent  = (e.total_fuel||'—')+' '+u+' · '+(e.distance||'—')+' km';
+  document.getElementById('fast-sub').textContent = Math.round(f.duration||0)+' min · '+(f.distance||'—')+' km';
 })();
 
-// ── Leaflet map ────────────────────────────────────────────────────────────────
-const map = L.map('map', { zoomControl: true }).setView([START_LAT, START_LNG], 11);
+// ── Map — satellite tiles ────────────────────────────────────────────────────
+const map = L.map('map', { zoomControl: true }).setView([START_LAT, START_LNG], 12);
 
-// Light cartographic tile — matches the editorial palette
-L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-  attribution: '© OpenStreetMap © Carto',
+// Satellite (Esri World Imagery — clear, high contrast)
+L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+  attribution: 'Tiles © Esri',
   maxZoom: 19,
 }).addTo(map);
 
-function pinIcon(fillColor, label) {
+// Labels overlay on top of satellite so streets are readable
+L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_only_labels/{z}/{x}/{y}{r}.png', {
+  attribution: '',
+  maxZoom: 19,
+  opacity: 0.8,
+}).addTo(map);
+
+function pinIcon(bg, label) {
   return L.divIcon({
     html:
-      '<div style="' +
-        'width:28px;height:28px;' +
-        'border-radius:50% 50% 50% 0;' +
-        'transform:rotate(-45deg);' +
-        'background:' + fillColor + ';' +
-        'border:2px solid #1C2B3A;' +
-        'box-shadow:0 2px 6px rgba(0,0,0,0.25);' +
-        'display:flex;align-items:center;justify-content:center;">' +
-        '<span style="transform:rotate(45deg);font-family:Courier Prime,monospace;font-size:10px;font-weight:700;color:#1C2B3A;">' + label + '</span>' +
+      '<div style="width:26px;height:26px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);' +
+      'background:'+bg+';border:2px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,0.5);' +
+      'display:flex;align-items:center;justify-content:center;">' +
+      '<span style="transform:rotate(45deg);font-family:monospace;font-size:10px;font-weight:700;color:#fff;">'+label+'</span>' +
       '</div>',
-    iconSize: [28, 28], iconAnchor: [14, 28], popupAnchor: [0, -30], className: '',
+    iconSize:[26,26], iconAnchor:[13,26], popupAnchor:[0,-28], className:'',
   });
 }
 
-const startMarker = L.marker([START_LAT, START_LNG], { icon: pinIcon('#AECBD6', 'A') })
-  .addTo(map).bindPopup('<b>Start:</b> {{ start | e }}');
-const endMarker   = L.marker([END_LAT, END_LNG],     { icon: pinIcon('#78A2CC', 'B') })
-  .addTo(map).bindPopup('<b>End:</b> {{ end | e }}');
+const startMarker = L.marker([START_LAT,START_LNG],{icon:pinIcon('#AECBD6','A')}).addTo(map).bindPopup('<b>{{ start | e }}</b>');
+const endMarker   = L.marker([END_LAT,  END_LNG],  {icon:pinIcon('#78A2CC','B')}).addTo(map).bindPopup('<b>{{ end | e }}</b>');
 
 const polylines = {};
-// Draw fastest underneath
-if (ROUTES.fastest.coords && ROUTES.fastest.coords.length) {
-  polylines.fastest = L.polyline(ROUTES.fastest.coords, {
-    color: '#9AAEBB', weight: 3, opacity: 0.5, dashArray: '7 6',
-  }).addTo(map);
-}
-// Draw eco on top — primary blue
-if (ROUTES.eco.coords && ROUTES.eco.coords.length) {
-  polylines.eco = L.polyline(ROUTES.eco.coords, {
-    color: '#78A2CC', weight: 4, opacity: 1,
-  }).addTo(map);
-}
+if (ROUTES.fastest.coords && ROUTES.fastest.coords.length)
+  polylines.fastest = L.polyline(ROUTES.fastest.coords, {color:'#ffffff', weight:3, opacity:0.45, dashArray:'7 5'}).addTo(map);
+if (ROUTES.eco.coords && ROUTES.eco.coords.length)
+  polylines.eco = L.polyline(ROUTES.eco.coords, {color:'#78A2CC', weight:5, opacity:1}).addTo(map);
 
 function fitRoute(tag) {
   const pts = ROUTES[tag].coords;
-  if (!pts || !pts.length) return;
+  if (!pts||!pts.length) return;
   try {
-    const bounds = L.featureGroup([L.polyline(pts), startMarker, endMarker]).getBounds();
-    if (bounds.isValid()) map.fitBounds(bounds.pad(0.1));
+    const b = L.featureGroup([L.polyline(pts),startMarker,endMarker]).getBounds();
+    if (b.isValid()) map.fitBounds(b.pad(0.1));
   } catch(e) {}
 }
 fitRoute('eco');
 
-// ── State ──────────────────────────────────────────────────────────────────────
-let activeTag  = 'eco';
-let stepsOpen  = false;
+// ── State ────────────────────────────────────────────────────────────────────
+let activeTag = 'eco', stepsOpen = false;
 
 function switchRoute(tag) {
   activeTag = tag;
+  document.querySelectorAll('.rtab').forEach(b => b.classList.remove('active'));
+  document.getElementById('btn-'+tag).classList.add('active');
 
-  // Tab styles
-  document.querySelectorAll('.route-btn').forEach(function(b) { b.classList.remove('active'); });
-  document.getElementById('btn-' + tag).classList.add('active');
-
-  // Polyline styles
-  for (var t in polylines) {
+  for (const t in polylines) {
     if (t === tag) {
-      polylines[t].setStyle({ color: '#78A2CC', weight: 4, opacity: 1, dashArray: null });
+      polylines[t].setStyle({color: tag==='eco' ? '#78A2CC' : '#ffffff', weight:5, opacity:1, dashArray:null});
       polylines[t].bringToFront();
     } else {
-      polylines[t].setStyle({ color: '#9AAEBB', weight: 3, opacity: 0.45, dashArray: '7 6' });
+      polylines[t].setStyle({color:'#ffffff', weight:3, opacity:0.4, dashArray:'7 5'});
     }
   }
   fitRoute(tag);
@@ -753,88 +555,57 @@ function switchRoute(tag) {
   if (stepsOpen) renderSteps(tag);
 }
 
-// ── Metrics ────────────────────────────────────────────────────────────────────
-function setText(id, val) {
-  var el = document.getElementById(id);
-  if (el) el.textContent = (val === null || val === undefined) ? '—' : val;
-}
+function set(id, v) { const el=document.getElementById(id); if (el) el.textContent=(v===null||v===undefined)?'—':v; }
 
 function updateMetrics(tag) {
-  var r = ROUTES[tag];
-  if (!r) return;
+  const r = ROUTES[tag]; if (!r) return;
+  set('effNum',     r.efficiency_score);
+  set('mDist',      r.distance);
+  set('mDur',       r.duration!=null ? Math.round(r.duration) : null);
+  set('mFuel',      r.total_fuel);
+  set('mCost',      r.fuel_cost!=null ? '$'+r.fuel_cost : null);
+  set('mCO2',       r.co2_emissions);
+  set('mSpeed',     r.avg_speed);
+  set('mFuelUnit',  FUEL_TYPE==='electric' ? 'kWh' : 'L');
 
-  setText('mDist',  r.distance);
-  setText('mDur',   r.duration !== null ? Math.round(r.duration) : '—');
-  setText('mFuel',  r.total_fuel);
-  setText('mCost',  r.fuel_cost !== null ? '$' + r.fuel_cost : '—');
-  setText('mCO2',   r.co2_emissions);
-  setText('mSpeed', r.avg_speed);
-  setText('mFuelUnit', FUEL_TYPE === 'electric' ? 'kWh' : 'L');
-
-  // Efficiency ring
-  var score = r.efficiency_score || 0;
-  setText('effScore', score);
-  setText('effLabel', tag === 'eco' ? 'Eco efficiency score' : 'Route efficiency score');
-  var ring = document.getElementById('effRing');
-  if (ring) {
-    var circ = 2 * Math.PI * 28; // r=28
-    ring.style.strokeDasharray  = circ;
-    ring.style.strokeDashoffset = circ - (score / 100) * circ;
-    ring.style.stroke = tag === 'eco' ? '#78A2CC' : '#9AAEBB';
-  }
-
-  // Fuel bars
-  var total   = r.total_fuel || 0.001;
-  var fuelSfx = (FUEL_TYPE === 'electric' ? ' kWh' : ' L');
-  setText('fIdle',  (r.idle_fuel   || 0) + fuelSfx);
-  setText('fAccel', (r.accel_fuel  || 0) + fuelSfx);
-  setText('fCruise',(r.cruise_fuel || 0) + fuelSfx);
-  function pct(v) { return (Math.min(100, Math.max(0, ((v || 0) / total) * 100)).toFixed(1)) + '%'; }
-  var ib = document.getElementById('fIdleBar');
-  var ab = document.getElementById('fAccelBar');
-  var cb = document.getElementById('fCruiseBar');
-  if (ib) ib.style.width = pct(r.idle_fuel);
-  if (ab) ab.style.width = pct(r.accel_fuel);
-  if (cb) cb.style.width = pct(r.cruise_fuel);
+  const total = r.total_fuel || 0.001;
+  const u = FUEL_TYPE==='electric' ? ' kWh' : ' L';
+  set('fIdle',   (r.idle_fuel  ||0)+u);
+  set('fAccel',  (r.accel_fuel ||0)+u);
+  set('fCruise', (r.cruise_fuel||0)+u);
+  function pct(v) { return (Math.min(100,Math.max(0,((v||0)/total)*100)).toFixed(1))+'%'; }
+  const ib=document.getElementById('fIdleBar'),  ab=document.getElementById('fAccelBar'),  cb=document.getElementById('fCruiseBar');
+  if(ib) ib.style.width=pct(r.idle_fuel);
+  if(ab) ab.style.width=pct(r.accel_fuel);
+  if(cb) cb.style.width=pct(r.cruise_fuel);
 }
 
-// ── Steps ──────────────────────────────────────────────────────────────────────
 function renderSteps(tag) {
-  var steps = ROUTES[tag].steps || [];
-  var list  = document.getElementById('stepList');
-  if (!list) return;
-  list.innerHTML = '';
-  steps.forEach(function(s, i) {
-    var instr = (s && typeof s === 'object') ? (s.instruction || '') : String(s);
-    var dist  = (s && s.distance) ? s.distance + ' km' : '';
-    var dur   = (s && s.duration) ? s.duration + ' min' : '';
-    var meta  = [dist, dur].filter(Boolean).join(' · ');
-    var li = document.createElement('li');
-    li.className = 'step-item';
-    li.innerHTML =
-      '<span class="step-num">' + (i + 1) + '</span>' +
-      '<div>' +
-        '<div class="step-text">' + esc(instr) + '</div>' +
-        (meta ? '<div class="step-meta">' + esc(meta) + '</div>' : '') +
-      '</div>';
+  const steps=ROUTES[tag].steps||[], list=document.getElementById('stepList');
+  if(!list) return;
+  list.innerHTML='';
+  steps.forEach(function(s,i){
+    const instr=(s&&typeof s==='object')?(s.instruction||''):String(s);
+    const dist=(s&&s.distance)?s.distance+' km':'';
+    const dur =(s&&s.duration)?s.duration+' min':'';
+    const meta=[dist,dur].filter(Boolean).join(' · ');
+    const li=document.createElement('li');
+    li.className='step-item';
+    li.innerHTML='<span class="step-num">'+(i+1)+'</span><div><div class="step-text">'+esc(instr)+'</div>'+(meta?'<div class="step-meta">'+esc(meta)+'</div>':'')+'</div>';
     list.appendChild(li);
   });
 }
 
 function toggleSteps() {
-  stepsOpen = !stepsOpen;
-  var panel = document.getElementById('stepsPanel');
-  var btn   = document.getElementById('stepsBtn');
-  if (panel) panel.classList.toggle('open', stepsOpen);
-  if (btn)   btn.textContent = stepsOpen ? 'Hide directions ↑' : 'Show directions ↓';
-  if (stepsOpen) renderSteps(activeTag);
+  stepsOpen=!stepsOpen;
+  const p=document.getElementById('stepsPanel'), b=document.getElementById('stepsBtn');
+  if(p) p.classList.toggle('open',stepsOpen);
+  if(b) b.textContent=stepsOpen?'Hide directions ↑':'Show directions ↓';
+  if(stepsOpen) renderSteps(activeTag);
 }
 
-function esc(s) {
-  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 
-// ── Init ───────────────────────────────────────────────────────────────────────
 updateMetrics('eco');
 </script>
 </body>
