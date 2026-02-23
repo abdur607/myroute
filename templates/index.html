@@ -39,15 +39,91 @@
       flex-direction: column;
       justify-content: center;
       padding: 80px 72px;
+      position: relative;
+      overflow: hidden;
+    }
+    .left-map-bg {
+      position: absolute;
+      inset: 0;
+      z-index: 0;
+      pointer-events: auto;
+      background:
+        radial-gradient(1200px 700px at 12% 12%, rgba(191, 212, 219, 0.55), rgba(191, 212, 219, 0) 62%),
+        radial-gradient(900px 600px at 82% 74%, rgba(164, 195, 210, 0.42), rgba(164, 195, 210, 0) 66%),
+        linear-gradient(150deg, rgba(191, 212, 219, 0.36) 0%, rgba(174, 203, 214, 0.26) 46%, rgba(150, 185, 208, 0.2) 100%);
+    }
+    .left-map-bg svg {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      opacity: 0.72;
+    }
+    .left-map-bg .cars {
+      position: absolute;
+      inset: 0;
+    }
+    .left-map-bg .car {
+      position: absolute;
+      width: 11px;
+      height: 5px;
+      border-radius: 3px;
+      background: #5f88b3;
+      box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.32);
+      transform-origin: center;
+      opacity: 0.95;
+      will-change: transform;
+      z-index: 1;
+    }
+    .left-map-bg .car::before {
+      content: "";
+      position: absolute;
+      left: 2px;
+      top: 1px;
+      width: 4px;
+      height: 3px;
+      border-radius: 1px;
+      background: rgba(255, 255, 255, 0.65);
+    }
+    .left-map-bg .c1 {
+      background: #6b94bc;
+    }
+    .left-map-bg .c2 {
+      background: #7ea2c4;
+    }
+    .left-map-bg .c3 {
+      background: #89aac9;
+    }
+    .left-map-bg .c4 {
+      background: #7399c0;
+    }
+    .left-map-bg .c5 {
+      background: #5b86b2;
+    }
+    .left-map-bg .c6 {
+      background: #6c90b8;
     }
 
-    .wordmark {
+    .form-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: flex-start;
+      gap: 16px;
+      margin-bottom: 30px;
+    }
+    .form-title-wrap { min-width: 0; }
+    .hero-wordmark {
       font-family: 'Playfair Display', serif;
-      font-size: 15px;
+      font-style: italic;
+      font-size: clamp(76px, 7.2vw, 124px);
       font-weight: 700;
-      letter-spacing: 0.04em;
+      line-height: 0.9;
+      letter-spacing: -0.01em;
       color: var(--blue-1);
-      margin-bottom: 64px;
+      margin-bottom: 34px;
+      position: relative;
+      z-index: 2;
+      width: fit-content;
     }
 
     .headline {
@@ -57,6 +133,9 @@
       line-height: 1.06;
       letter-spacing: -0.5px;
       margin-bottom: 24px;
+      position: relative;
+      z-index: 2;
+      max-width: 640px;
     }
     .headline em {
       font-style: italic;
@@ -70,12 +149,16 @@
       font-weight: 300;
       max-width: 420px;
       margin-bottom: 72px;
+      position: relative;
+      z-index: 2;
     }
 
     /* Three simple stats — no boxes, just inline */
     .stats {
       display: flex;
       gap: 48px;
+      position: relative;
+      z-index: 2;
     }
     .stat-num {
       font-family: 'Playfair Display', serif;
@@ -112,7 +195,7 @@
     .form-sub {
       font-size: 14px;
       color: var(--ink-3);
-      margin-bottom: 40px;
+      margin-bottom: 0;
       font-weight: 300;
     }
 
@@ -278,11 +361,20 @@
     @media (max-width: 900px) {
       .shell { grid-template-columns: 1fr; }
       .left { padding: 56px 32px 40px; }
+      .form-header { margin-bottom: 24px; }
+      .hero-wordmark {
+        font-size: clamp(62px, 11vw, 92px);
+        margin-bottom: 22px;
+      }
       .right { border-left: none; border-top: 1px solid var(--rule); padding: 40px 32px 56px; }
       .stats { gap: 32px; }
     }
     @media (max-width: 480px) {
       .left { padding: 40px 24px 32px; }
+      .hero-wordmark {
+        font-size: clamp(52px, 17vw, 74px);
+        margin-bottom: 16px;
+      }
       .right { padding: 32px 24px 48px; }
       .grid-2 { grid-template-columns: 1fr; }
     }
@@ -293,16 +385,37 @@
 
   <!-- Left -->
   <main class="left">
-    <div class="wordmark">MyRoute</div>
+    <div class="left-map-bg" aria-hidden="true">
+      <svg viewBox="0 0 1200 800" preserveAspectRatio="none">
+        <g fill="none" stroke-linecap="round">
+          <path id="route1" d="M -180 120 C 120 40, 380 60, 700 150 C 900 208, 1130 242, 1380 212" stroke="#27496A" stroke-width="42"/>
+          <path id="route2" d="M -150 744 C 130 676, 348 590, 620 468 C 870 356, 1120 320, 1380 342" stroke="#8EB1D9" stroke-width="38"/>
+          <path id="route3" d="M 1380 794 C 1180 742, 980 700, 820 640 C 660 582, 520 564, 360 622 C 170 692, 10 770, -200 868" stroke="#27496A" stroke-width="34"/>
+          <path id="route4" d="M -180 564 C 100 526, 330 444, 610 320 C 860 210, 1110 126, 1380 60" stroke="#98B6D4" stroke-width="28"/>
+          <path id="route5" d="M 40 -140 C 238 82, 400 246, 600 354 C 820 474, 1080 622, 1380 850" stroke="#7B9FCF" stroke-width="24"/>
+          <path id="route6" d="M 1158 -180 C 1022 -40, 930 122, 860 262 C 812 358, 748 450, 646 538 C 492 674, 260 826, -220 980" stroke="#88AED0" stroke-width="20"/>
+        </g>
+      </svg>
+      <div class="cars">
+        <span class="car c1" data-route="route1" data-speed="82" data-phase="0.07"></span>
+        <span class="car c2" data-route="route2" data-speed="78" data-phase="0.33"></span>
+        <span class="car c3" data-route="route3" data-speed="80" data-phase="0.59"></span>
+        <span class="car c4" data-route="route4" data-speed="84" data-phase="0.21"></span>
+        <span class="car c5" data-route="route5" data-speed="76" data-phase="0.47"></span>
+        <span class="car c6" data-route="route6" data-speed="79" data-phase="0.71"></span>
+        <span class="car c2" data-route="route1" data-speed="75" data-phase="0.49"></span>
+        <span class="car c4" data-route="route2" data-speed="83" data-phase="0.12"></span>
+        <span class="car c6" data-route="route3" data-speed="77" data-phase="0.86"></span>
+        <span class="car c1" data-route="route4" data-speed="81" data-phase="0.38"></span>
+        <span class="car c3" data-route="route5" data-speed="74" data-phase="0.63"></span>
+        <span class="car c5" data-route="route6" data-speed="80" data-phase="0.25"></span>
+      </div>
+    </div>
+    <div class="hero-wordmark" aria-hidden="true">MyRoute</div>
 
     <h1 class="headline">
       Find the route<br>that burns <em>least.</em>
     </h1>
-
-    <p class="subline">
-      MyRoute uses your vehicle's aerodynamics, weight and engine efficiency to find
-      the genuinely most fuel-efficient path — not just the fastest.
-    </p>
 
     <div class="stats">
       <div>
@@ -310,20 +423,24 @@
         <div class="stat-label">Vehicles</div>
       </div>
       <div>
-        <div class="stat-num">7×</div>
+        <div class="stat-num">15+</div>
         <div class="stat-label">Routes scored</div>
       </div>
       <div>
-        <div class="stat-num">3</div>
-        <div class="stat-label">Physics forces</div>
+        <div class="stat-num">28</div>
+        <div class="stat-label">Physical forces considered</div>
       </div>
     </div>
   </main>
 
   <!-- Right form -->
   <aside class="right">
-    <h2 class="form-title">Plan your journey</h2>
-    <p class="form-sub">Enter your route and vehicle below.</p>
+    <div class="form-header">
+      <div class="form-title-wrap">
+        <h2 class="form-title">Plan your journey</h2>
+        <p class="form-sub">Enter your route and vehicle below.</p>
+      </div>
+    </div>
 
     <form id="routeForm" action="/results" method="GET">
       <input type="hidden" name="start_lat" id="start_lat">
@@ -493,6 +610,107 @@ modelEl.addEventListener('change', async () => {
 document.getElementById('routeForm').addEventListener('submit', () => {
   document.getElementById('submitBtn').classList.add('loading');
 });
+
+(function animateMapCars() {
+  const mapBg = document.querySelector('.left-map-bg');
+  if (!mapBg) return;
+  const svg = mapBg.querySelector('svg');
+  if (!svg) return;
+
+  const viewW = 1200;
+  const viewH = 800;
+
+  const cars = Array.from(mapBg.querySelectorAll('.car[data-route]')).map((el) => {
+    const routeId = el.getAttribute('data-route');
+    const path = routeId ? svg.querySelector('#' + routeId) : null;
+    if (!path) return null;
+    return {
+      el,
+      path,
+      len: path.getTotalLength(),
+      speed: parseFloat(el.getAttribute('data-speed') || '78'),
+      phase: parseFloat(el.getAttribute('data-phase') || '0'),
+      progress: 0,
+      factor: 1
+    };
+  }).filter(Boolean);
+  if (!cars.length) return;
+
+  cars.forEach((car) => {
+    car.progress = ((((car.phase % 1) + 1) % 1) * car.len);
+  });
+
+  let scaleX = mapBg.clientWidth / viewW;
+  let scaleY = mapBg.clientHeight / viewH;
+
+  function syncScale() {
+    scaleX = mapBg.clientWidth / viewW;
+    scaleY = mapBg.clientHeight / viewH;
+  }
+  syncScale();
+  window.addEventListener('resize', syncScale);
+
+  const cursor = { active: false, x: 0, y: 0 };
+  function setCursorFromEvent(e) {
+    const r = mapBg.getBoundingClientRect();
+    cursor.x = e.clientX - r.left;
+    cursor.y = e.clientY - r.top;
+    cursor.active = true;
+  }
+  mapBg.addEventListener('mousemove', setCursorFromEvent);
+  mapBg.addEventListener('mouseenter', setCursorFromEvent);
+  mapBg.addEventListener('mouseleave', () => { cursor.active = false; });
+  mapBg.addEventListener('touchstart', (e) => {
+    const t = e.touches && e.touches[0];
+    if (!t) return;
+    setCursorFromEvent(t);
+  }, { passive: true });
+  mapBg.addEventListener('touchmove', (e) => {
+    const t = e.touches && e.touches[0];
+    if (!t) return;
+    setCursorFromEvent(t);
+  }, { passive: true });
+  mapBg.addEventListener('touchend', () => { cursor.active = false; });
+
+  let last = performance.now();
+  function tick(now) {
+    const dt = Math.max(0, Math.min(0.04, (now - last) / 1000));
+    last = now;
+
+    for (const car of cars) {
+      const p1 = car.path.getPointAtLength(car.progress);
+      const x = p1.x * scaleX;
+      const y = p1.y * scaleY;
+
+      let targetFactor = 1;
+      if (cursor.active) {
+        const dx = cursor.x - x;
+        const dy = cursor.y - y;
+        const dist = Math.hypot(dx, dy);
+        const slowRadius = 56;
+        const stopRadius = 14;
+        if (dist < slowRadius) {
+          const t = Math.max(0, Math.min(1, (dist - stopRadius) / (slowRadius - stopRadius)));
+          targetFactor = 0.18 + 0.82 * t;
+        }
+      }
+      const rate = targetFactor < car.factor ? 7.8 : 2.8;
+      car.factor += (targetFactor - car.factor) * Math.min(1, rate * dt);
+      car.progress = (car.progress + car.speed * car.factor * dt) % car.len;
+
+      const q1 = car.path.getPointAtLength(car.progress);
+      const q2 = car.path.getPointAtLength((car.progress + 2) % car.len);
+      const qAngle = Math.atan2((q2.y - q1.y) * scaleY, (q2.x - q1.x) * scaleX) * 180 / Math.PI;
+      const qx = q1.x * scaleX;
+      const qy = q1.y * scaleY;
+      car.el.style.transform = 'translate(' + qx + 'px,' + qy + 'px) translate(-50%,-50%) rotate(' + qAngle + 'deg)';
+    }
+
+    requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+})();
+
 </script>
 </body>
 </html>
