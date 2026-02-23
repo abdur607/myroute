@@ -10,16 +10,19 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
   <style>
     :root {
-      --blue-1: #78A2CC;
-      --blue-3: #96B9D0;
-      --blue-6: #BFD4DB;
-      --paper:  #F4F1EC;
-      --ink:    #1C2B3A;
-      --ink-2:  #3A5068;
-      --ink-3:  #6B8299;
-      --rule:   #D8DFE6;
-      --eco-fg: #2E6B4F;
-      --eco-bg: #EAF5EE;
+      --eco-line:   #1A3A5C;   /* dark navy — eco route on map */
+      --fast-line:  #78A2CC;   /* sky blue  — fastest route on map */
+      --panel-bg:   #1C2B3A;   /* sidebar background */
+      --panel-mid:  #253648;   /* section backgrounds within sidebar */
+      --panel-rule: #2E4460;   /* dividers on dark bg */
+      --panel-ink:  #E8EFF5;   /* primary text on dark */
+      --panel-ink2: #A8C0D0;   /* secondary text on dark */
+      --panel-ink3: #5C7A94;   /* muted text on dark */
+      --accent:     #7EB3D8;   /* highlight color for eco values */
+      --paper:      #F4F1EC;
+      --ink:        #1C2B3A;
+      --ink-3:      #6B8299;
+      --rule:       #D8DFE6;
     }
 
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -28,248 +31,173 @@
     /* ── Top bar ── */
     .topbar {
       height: 52px;
-      border-bottom: 1px solid var(--rule);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
+      background: var(--panel-bg);
+      border-bottom: 1px solid var(--panel-rule);
+      display: flex; align-items: center; justify-content: space-between;
       padding: 0 32px;
-      background: #fff;
     }
-    .tb-brand {
-      font-family: 'Playfair Display', serif;
-      font-size: 16px;
-      font-weight: 700;
-      color: var(--blue-1);
-      text-decoration: none;
-    }
-    .tb-route {
-      font-family: 'Courier Prime', monospace;
-      font-size: 12px;
-      color: var(--ink-3);
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    .tb-route strong { color: var(--ink); font-weight: 700; }
-    .tb-back {
-      font-family: 'Courier Prime', monospace;
-      font-size: 11px;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      color: var(--ink-3);
-      text-decoration: none;
-    }
-    .tb-back:hover { color: var(--blue-1); }
+    .tb-brand { font-family: 'Playfair Display', serif; font-size: 16px; font-weight: 700; color: var(--fast-line); text-decoration: none; }
+    .tb-route { font-family: 'Courier Prime', monospace; font-size: 12px; color: var(--panel-ink3); display: flex; align-items: center; gap: 8px; }
+    .tb-route strong { color: var(--panel-ink); font-weight: 700; }
+    .tb-back { font-family: 'Courier Prime', monospace; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--panel-ink3); text-decoration: none; transition: color 0.15s; }
+    .tb-back:hover { color: var(--fast-line); }
 
-    /* ── Main two-column layout ── */
-    .layout {
-      display: grid;
-      grid-template-columns: 360px 1fr;
-      height: calc(100vh - 52px);
-    }
+    /* ── Layout ── */
+    .layout { display: grid; grid-template-columns: 360px 1fr; height: calc(100vh - 52px); }
 
-    /* ── Left panel ── */
+    /* ── Panel — transitions for theme switch ── */
+    .panel, .topbar {
+      transition: background 0.35s ease, border-color 0.35s ease;
+    }
     .panel {
-      background: #fff;
-      border-right: 1px solid var(--rule);
-      display: flex;
-      flex-direction: column;
+      background: var(--panel-bg);
+      border-right: 1px solid var(--panel-rule);
+      display: flex; flex-direction: column;
       overflow-y: auto;
     }
+    .panel::-webkit-scrollbar { width: 4px; }
+    .panel::-webkit-scrollbar-track { background: transparent; }
+    .panel::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 2px; }
 
-    /* Route switcher — two plain text tabs at the top */
-    .route-tabs {
-      display: flex;
-      border-bottom: 1px solid var(--rule);
-      flex-shrink: 0;
-    }
+    /* Fast mode: entire sidebar + topbar flip to sky-blue theme */
+    body.fast-mode .panel  { background: #78A2CC; border-right-color: #6190BB; }
+    body.fast-mode .topbar { background: #5E8DB8; border-bottom-color: #4F7EA8; }
+
+    /* Fast mode text adjustments — ink darkens against light blue */
+    body.fast-mode .tb-brand           { color: #fff; }
+    body.fast-mode .tb-back            { color: rgba(255,255,255,0.7); }
+    body.fast-mode .tb-back:hover      { color: #fff; }
+    body.fast-mode .tb-route           { color: rgba(255,255,255,0.65); }
+    body.fast-mode .tb-route strong    { color: #fff; }
+
+    body.fast-mode .route-tabs         { border-bottom-color: #6190BB; }
+    body.fast-mode .rtab               { border-right-color: #6190BB; }
+    body.fast-mode .rtab:hover         { background: rgba(255,255,255,0.12); }
+    body.fast-mode .rtab.active        { background: rgba(255,255,255,0.18); }
+    body.fast-mode #btn-fastest.active { border-left-color: #fff; }
+    body.fast-mode .rtab-label         { color: rgba(255,255,255,0.6); }
+    body.fast-mode #btn-fastest.active .rtab-label { color: #fff; }
+    body.fast-mode .rtab-name          { color: #fff; }
+    body.fast-mode .rtab-sub           { color: rgba(255,255,255,0.6); }
+
+    body.fast-mode .panel-body         { --panel-rule: #6190BB; }
+    body.fast-mode .metric             { border-bottom-color: #6190BB; }
+    body.fast-mode .metric:nth-child(odd) { border-right-color: #6190BB; }
+    body.fast-mode .metric-key         { color: rgba(255,255,255,0.6); }
+    body.fast-mode .metric-val         { color: #fff; }
+    body.fast-mode .metric-unit        { color: rgba(255,255,255,0.6); }
+
+    body.fast-mode .section-head       { color: rgba(255,255,255,0.6); }
+    body.fast-mode .fbar-name          { color: rgba(255,255,255,0.75); }
+    body.fast-mode .fbar-val           { color: #fff; }
+    body.fast-mode .fbar-track         { background: rgba(255,255,255,0.2); }
+    body.fast-mode .fbar-fill.idle     { background: #fff; }
+    body.fast-mode .fbar-fill.accel    { background: rgba(255,255,255,0.75); }
+    body.fast-mode .fbar-fill.cruise   { background: rgba(255,255,255,0.5); }
+
+    body.fast-mode .context-strip      { border-color: #6190BB; }
+    body.fast-mode .ctx-item           { background: rgba(255,255,255,0.12); border-right-color: #6190BB; }
+    body.fast-mode .ctx-key            { color: rgba(255,255,255,0.6); }
+    body.fast-mode .ctx-val            { color: #fff; }
+
+    body.fast-mode .co2-note           { background: rgba(255,255,255,0.12); border-color: #6190BB; border-left-color: #fff; color: rgba(255,255,255,0.85); }
+    body.fast-mode .co2-note strong    { color: #fff; }
+
+    body.fast-mode .comp-table th      { color: rgba(255,255,255,0.6); border-bottom-color: #6190BB; }
+    body.fast-mode .comp-table td      { color: rgba(255,255,255,0.8); border-bottom-color: #6190BB; }
+    body.fast-mode .td-tag.fast        { color: #fff; }
+    body.fast-mode .td-tag.eco         { color: rgba(255,255,255,0.7); }
+    body.fast-mode .td-best            { color: #fff; }
+
+    body.fast-mode .steps-toggle       { color: rgba(255,255,255,0.6); }
+    body.fast-mode .steps-toggle:hover { color: #fff; }
+    body.fast-mode .step-item          { border-bottom-color: #6190BB; }
+    body.fast-mode .step-num           { color: rgba(255,255,255,0.5); }
+    body.fast-mode .step-text          { color: rgba(255,255,255,0.85); }
+    body.fast-mode .step-meta          { color: rgba(255,255,255,0.55); }
+
+    /* ── Route tabs ── */
+    .route-tabs { display: flex; border-bottom: 1px solid var(--panel-rule); flex-shrink: 0; }
     .rtab {
-      flex: 1;
-      padding: 16px 20px;
-      background: none;
-      border: none;
-      border-right: 1px solid var(--rule);
-      cursor: pointer;
-      text-align: left;
-      font-family: 'Outfit', sans-serif;
+      flex: 1; padding: 16px 18px;
+      background: none; border: none; border-right: 1px solid var(--panel-rule);
+      cursor: pointer; text-align: left; font-family: 'Outfit', sans-serif;
       transition: background 0.12s;
     }
     .rtab:last-child { border-right: none; }
-    .rtab:hover { background: #f8f9fa; }
-    .rtab.active { background: var(--paper); }
-    .rtab-label {
-      font-family: 'Courier Prime', monospace;
-      font-size: 9px;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      color: var(--ink-3);
-      margin-bottom: 4px;
-    }
-    .rtab.active .rtab-label { color: var(--blue-1); }
-    .rtab-name { font-size: 15px; font-weight: 600; color: var(--ink); }
-    .rtab-sub  { font-family: 'Courier Prime', monospace; font-size: 11px; color: var(--ink-3); margin-top: 3px; }
+    .rtab:hover { background: var(--panel-mid); }
+    .rtab.active { background: var(--panel-mid); }
+    #btn-eco.active    { border-left: 3px solid var(--eco-line);  padding-left: 15px; }
+    #btn-fastest.active { border-left: 3px solid var(--fast-line); padding-left: 15px; }
+    .rtab-label { font-family: 'Courier Prime', monospace; font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--panel-ink3); margin-bottom: 4px; }
+    #btn-eco.active    .rtab-label { color: var(--accent); }
+    #btn-fastest.active .rtab-label { color: var(--fast-line); }
+    .rtab-name { font-size: 15px; font-weight: 600; color: var(--panel-ink); }
+    .rtab-sub  { font-family: 'Courier Prime', monospace; font-size: 11px; color: var(--panel-ink3); margin-top: 3px; }
 
-    /* Panel body — just flat rows, no card wrappers */
-    .panel-body { padding: 28px 24px; flex: 1; }
+    /* ── Panel body ── */
+    .panel-body { padding: 24px 22px; flex: 1; }
 
-    /* Efficiency score — inline, not a ring card */
-    .eff-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding-bottom: 20px;
-      margin-bottom: 20px;
-      border-bottom: 1px solid var(--rule);
-    }
-    .eff-label { font-family: 'Courier Prime', monospace; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-3); }
-    .eff-score-wrap { display: flex; align-items: baseline; gap: 6px; }
-    .eff-num { font-family: 'Playfair Display', serif; font-size: 36px; font-weight: 700; color: var(--ink); line-height: 1; }
-    .eff-denom { font-family: 'Courier Prime', monospace; font-size: 12px; color: var(--ink-3); }
-
-    /* Metric rows — two-column text grid */
-    .metric-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 0;
-      margin-bottom: 28px;
-    }
-    .metric {
-      padding: 14px 0;
-      border-bottom: 1px solid var(--rule);
-    }
-    .metric:nth-child(odd) { padding-right: 16px; border-right: 1px solid var(--rule); }
+    /* ── Metrics ── */
+    .metric-grid { display: grid; grid-template-columns: 1fr 1fr; margin-bottom: 26px; }
+    .metric { padding: 14px 0; border-bottom: 1px solid var(--panel-rule); }
+    .metric:nth-child(odd)  { padding-right: 16px; border-right: 1px solid var(--panel-rule); }
     .metric:nth-child(even) { padding-left: 16px; }
-    .metric-key {
-      font-family: 'Courier Prime', monospace;
-      font-size: 9px;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      color: var(--ink-3);
-      margin-bottom: 4px;
-    }
-    .metric-val {
-      font-family: 'Playfair Display', serif;
-      font-size: 22px;
-      font-weight: 700;
-      color: var(--ink);
-      line-height: 1.1;
-    }
-    .metric-unit {
-      font-family: 'Courier Prime', monospace;
-      font-size: 10px;
-      color: var(--ink-3);
-      margin-left: 3px;
-    }
+    .metric-key { font-family: 'Courier Prime', monospace; font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--panel-ink3); margin-bottom: 4px; }
+    .metric-val { font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 700; color: var(--panel-ink); line-height: 1.1; }
+    .metric-unit { font-family: 'Courier Prime', monospace; font-size: 10px; color: var(--panel-ink3); margin-left: 3px; }
 
-    /* Section heading within panel */
-    .section-head {
-      font-family: 'Courier Prime', monospace;
-      font-size: 9px;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      color: var(--ink-3);
-      margin-bottom: 12px;
-    }
+    /* ── Section head ── */
+    .section-head { font-family: 'Courier Prime', monospace; font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--panel-ink3); margin-bottom: 12px; }
 
-    /* Fuel bars — just tracks, no surrounding box */
-    .fuel-bars { margin-bottom: 28px; }
-    .fbar { margin-bottom: 10px; }
+    /* ── Fuel bars ── */
+    .fuel-bars { margin-bottom: 26px; }
+    .fbar { margin-bottom: 11px; }
     .fbar:last-child { margin-bottom: 0; }
-    .fbar-top { display: flex; justify-content: space-between; margin-bottom: 4px; }
-    .fbar-name { font-size: 12px; color: var(--ink-3); }
-    .fbar-val  { font-family: 'Courier Prime', monospace; font-size: 11px; color: var(--ink-2); font-weight: 700; }
-    .fbar-track { height: 3px; background: var(--rule); }
-    .fbar-fill  { height: 100%; width: 0; transition: width 0.5s ease; }
-    .fbar-fill.idle   { background: var(--blue-1); }
-    .fbar-fill.accel  { background: var(--blue-3); }
-    .fbar-fill.cruise { background: var(--blue-6); }
+    .fbar-top { display: flex; justify-content: space-between; margin-bottom: 5px; }
+    .fbar-name { font-size: 12px; color: var(--panel-ink2); }
+    .fbar-val  { font-family: 'Courier Prime', monospace; font-size: 11px; color: var(--panel-ink); font-weight: 700; }
+    .fbar-track { height: 3px; background: var(--panel-rule); border-radius: 2px; }
+    .fbar-fill  { height: 100%; width: 0; transition: width 0.5s ease; border-radius: 2px; }
+    .fbar-fill.idle   { background: var(--accent); }
+    .fbar-fill.accel  { background: #4A7FA8; }
+    .fbar-fill.cruise { background: #2C5878; }
 
-    /* CO2 note — a single quiet line, not a card */
-    .co2-note {
-      font-size: 13px;
-      color: var(--eco-fg);
-      line-height: 1.55;
-      padding: 14px 0;
-      border-top: 1px solid var(--rule);
-      border-bottom: 1px solid var(--rule);
-      margin-bottom: 20px;
-    }
-    .co2-note strong { font-weight: 600; }
+    /* ── Context strip ── */
+    .context-strip { display: flex; flex-wrap: wrap; border: 1px solid var(--panel-rule); margin-bottom: 20px; overflow: hidden; }
+    .ctx-item { flex: 1; min-width: 55px; padding: 9px 10px; border-right: 1px solid var(--panel-rule); display: flex; flex-direction: column; gap: 3px; background: var(--panel-mid); }
+    .ctx-item:last-child { border-right: none; }
+    .ctx-key { font-family: 'Courier Prime', monospace; font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--panel-ink3); }
+    .ctx-val { font-family: 'Courier Prime', monospace; font-size: 12px; font-weight: 700; color: var(--panel-ink); }
 
-    /* Comparison table — no outer box, borderless except row lines */
-    .comp-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
-    .comp-table th {
-      font-family: 'Courier Prime', monospace;
-      font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase;
-      color: var(--ink-3); text-align: left;
-      padding: 6px 8px 6px 0;
-      border-bottom: 1px solid var(--rule);
-      font-weight: 400;
-    }
-    .comp-table td {
-      font-family: 'Courier Prime', monospace;
-      font-size: 12px; color: var(--ink-2);
-      padding: 10px 8px 10px 0;
-      border-bottom: 1px solid var(--rule);
-    }
+    /* ── CO2 note ── */
+    .co2-note { font-size: 12px; color: var(--accent); line-height: 1.6; padding: 12px 14px; border: 1px solid var(--panel-rule); border-left: 3px solid var(--eco-line); background: var(--panel-mid); margin-bottom: 22px; }
+    .co2-note strong { color: var(--panel-ink); font-weight: 600; }
+
+    /* ── Comparison table ── */
+    .comp-table { width: 100%; border-collapse: collapse; margin-bottom: 22px; }
+    .comp-table th { font-family: 'Courier Prime', monospace; font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--panel-ink3); text-align: left; padding: 6px 8px 6px 0; border-bottom: 1px solid var(--panel-rule); font-weight: 400; }
+    .comp-table td { font-family: 'Courier Prime', monospace; font-size: 12px; color: var(--panel-ink2); padding: 10px 8px 10px 0; border-bottom: 1px solid var(--panel-rule); }
     .comp-table tr:last-child td { border-bottom: none; }
     .td-tag { font-size: 10px; font-weight: 700; letter-spacing: 0.05em; }
-    .td-tag.eco  { color: var(--eco-fg); }
-    .td-tag.fast { color: var(--ink-3); }
-    .td-best { color: var(--eco-fg); font-weight: 700; }
+    .td-tag.eco  { color: var(--accent); }
+    .td-tag.fast { color: var(--fast-line); }
+    .td-best { color: var(--accent); font-weight: 700; }
 
-    /* Context strip — weather + model inputs */
-    .context-strip {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0;
-      margin-bottom: 16px;
-      border: 1px solid var(--rule);
-    }
-    .ctx-item {
-      flex: 1;
-      min-width: 60px;
-      padding: 8px 10px;
-      border-right: 1px solid var(--rule);
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
-    }
-    .ctx-item:last-child { border-right: none; }
-    .ctx-key {
-      font-family: 'Courier Prime', monospace;
-      font-size: 9px;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      color: var(--ink-3);
-    }
-    .ctx-val {
-      font-family: 'Courier Prime', monospace;
-      font-size: 12px;
-      font-weight: 700;
-      color: var(--ink-2);
-    }
-
-    /* Steps toggle */
-    .steps-toggle {
-      font-family: 'Courier Prime', monospace;
-      font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase;
-      color: var(--ink-3); background: none; border: none; cursor: pointer;
-      padding: 0; transition: color 0.15s;
-    }
-    .steps-toggle:hover { color: var(--blue-1); }
+    /* ── Steps ── */
+    .steps-toggle { font-family: 'Courier Prime', monospace; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--panel-ink3); background: none; border: none; cursor: pointer; padding: 0; transition: color 0.15s; }
+    .steps-toggle:hover { color: var(--fast-line); }
     .steps-panel { display: none; margin-top: 14px; }
     .steps-panel.open { display: block; }
-    .step-item { display: flex; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--rule); }
+    .step-item { display: flex; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--panel-rule); }
     .step-item:last-child { border-bottom: none; }
-    .step-num  { font-family: 'Courier Prime', monospace; font-size: 10px; color: var(--ink-3); width: 18px; flex-shrink: 0; padding-top: 1px; }
-    .step-text { font-size: 12px; color: var(--ink-2); line-height: 1.45; }
-    .step-meta { font-family: 'Courier Prime', monospace; font-size: 10px; color: var(--ink-3); margin-top: 1px; }
+    .step-num  { font-family: 'Courier Prime', monospace; font-size: 10px; color: var(--panel-ink3); width: 18px; flex-shrink: 0; padding-top: 1px; }
+    .step-text { font-size: 12px; color: var(--panel-ink2); line-height: 1.45; }
+    .step-meta { font-family: 'Courier Prime', monospace; font-size: 10px; color: var(--panel-ink3); margin-top: 1px; }
 
     /* ── Map ── */
     #map { height: 100%; width: 100%; }
 
-    /* Responsive */
     @media (max-width: 960px) {
       .layout { grid-template-columns: 1fr; height: auto; }
       .panel { max-height: none; overflow-y: visible; }
@@ -280,29 +208,25 @@
 </head>
 <body>
 
-<!-- Top bar -->
 <div class="topbar">
   <a href="/" class="tb-brand">MyRoute</a>
   <div class="tb-route">
     <strong>{{ start }}</strong>
     <span>→</span>
     <strong>{{ end }}</strong>
-    <span style="opacity:0.4; margin: 0 4px">·</span>
+    <span style="opacity:0.35;margin:0 4px">·</span>
     {{ make }} {{ model }}
   </div>
   <a href="/" class="tb-back">← New route</a>
 </div>
 
 <div class="layout">
-
-  <!-- Left panel -->
   <div class="panel">
 
-    <!-- Route tabs -->
     <div class="route-tabs">
       <button class="rtab active" id="btn-eco" onclick="switchRoute('eco')">
         <div class="rtab-label">Eco Route</div>
-        <div class="rtab-name">Most Efficient</div>
+        <div class="rtab-name">Lowest Fuel Use</div>
         <div class="rtab-sub" id="eco-sub">—</div>
       </button>
       <button class="rtab" id="btn-fastest" onclick="switchRoute('fastest')">
@@ -314,16 +238,6 @@
 
     <div class="panel-body">
 
-      <!-- Efficiency score -->
-      <div class="eff-row">
-        <span class="eff-label">Efficiency score</span>
-        <div class="eff-score-wrap">
-          <span class="eff-num" id="effNum">—</span>
-          <span class="eff-denom">/100</span>
-        </div>
-      </div>
-
-      <!-- Metrics 2×3 grid -->
       <div class="metric-grid">
         <div class="metric">
           <div class="metric-key">Distance</div>
@@ -351,7 +265,6 @@
         </div>
       </div>
 
-      <!-- Fuel breakdown -->
       <div class="section-head">Fuel breakdown</div>
       <div class="fuel-bars">
         <div class="fbar">
@@ -368,7 +281,6 @@
         </div>
       </div>
 
-      <!-- Weather + model context strip -->
       <div class="context-strip">
         {% if weather %}
         <div class="ctx-item">
@@ -386,29 +298,27 @@
         </div>
         {% endif %}
         {% else %}
-        <div class="ctx-item"><span class="ctx-key">Weather</span><span class="ctx-val">unavailable</span></div>
+        <div class="ctx-item"><span class="ctx-key">Weather</span><span class="ctx-val">N/A</span></div>
         {% endif %}
         <div class="ctx-item">
           <span class="ctx-key">Style</span>
           <span class="ctx-val" style="text-transform:capitalize;">{{ style }}</span>
         </div>
         <div class="ctx-item">
-          <span class="ctx-key">Routes scored</span>
+          <span class="ctx-key">Routes</span>
           <span class="ctx-val">{{ candidates_evaluated }}</span>
         </div>
       </div>
 
-      <!-- CO2 saving note -->
       {% set co2_saved  = (fastest.co2_emissions - eco.co2_emissions) | round(2) %}
       {% set fuel_saved = (fastest.total_fuel - eco.total_fuel) | round(2) %}
       {% if co2_saved > 0.01 %}
       <div class="co2-note">
-        Eco route saves <strong>{{ fuel_saved }}{% if fuel_type == 'electric' %} kWh{% else %} L{% endif %}</strong>
+        Eco saves <strong>{{ fuel_saved }}{% if fuel_type == 'electric' %} kWh{% else %} L{% endif %}</strong>
         and <strong>{{ co2_saved }} kg CO₂</strong> vs fastest.
       </div>
       {% endif %}
 
-      <!-- Comparison -->
       <div class="section-head">Comparison</div>
       <table class="comp-table">
         <thead>
@@ -427,49 +337,44 @@
         </tbody>
       </table>
 
-      <!-- Turn-by-turn -->
       <button class="steps-toggle" id="stepsBtn" onclick="toggleSteps()">Show directions ↓</button>
       <div class="steps-panel" id="stepsPanel">
         <ul id="stepList" style="list-style:none;"></ul>
       </div>
 
-    </div><!-- /panel-body -->
-  </div><!-- /panel -->
+    </div>
+  </div>
 
-  <!-- Map -->
   <div id="map"></div>
-
 </div>
 
 <script>
 const ROUTES = {
   eco: {
-    distance:         {{ eco.distance         | tojson }},
-    duration:         {{ eco.duration         | tojson }},
-    total_fuel:       {{ eco.total_fuel       | tojson }},
-    idle_fuel:        {{ eco.idle_fuel        | tojson }},
-    accel_fuel:       {{ eco.accel_fuel       | tojson }},
-    cruise_fuel:      {{ eco.cruise_fuel      | tojson }},
-    fuel_cost:        {{ eco.fuel_cost        | tojson }},
-    co2_emissions:    {{ eco.co2_emissions    | tojson }},
-    efficiency_score: {{ eco.efficiency_score | tojson }},
-    avg_speed:        {{ eco.avg_speed        | tojson }},
-    coords:           {{ eco.route_coordinates | tojson }},
-    steps:            {{ eco.steps            | tojson }},
+    distance:      {{ eco.distance         | tojson }},
+    duration:      {{ eco.duration         | tojson }},
+    total_fuel:    {{ eco.total_fuel       | tojson }},
+    idle_fuel:     {{ eco.idle_fuel        | tojson }},
+    accel_fuel:    {{ eco.accel_fuel       | tojson }},
+    cruise_fuel:   {{ eco.cruise_fuel      | tojson }},
+    fuel_cost:     {{ eco.fuel_cost        | tojson }},
+    co2_emissions: {{ eco.co2_emissions    | tojson }},
+    avg_speed:     {{ eco.avg_speed        | tojson }},
+    coords:        {{ eco.route_coordinates | tojson }},
+    steps:         {{ eco.steps            | tojson }},
   },
   fastest: {
-    distance:         {{ fastest.distance         | tojson }},
-    duration:         {{ fastest.duration         | tojson }},
-    total_fuel:       {{ fastest.total_fuel       | tojson }},
-    idle_fuel:        {{ fastest.idle_fuel        | tojson }},
-    accel_fuel:       {{ fastest.accel_fuel       | tojson }},
-    cruise_fuel:      {{ fastest.cruise_fuel      | tojson }},
-    fuel_cost:        {{ fastest.fuel_cost        | tojson }},
-    co2_emissions:    {{ fastest.co2_emissions    | tojson }},
-    efficiency_score: {{ fastest.efficiency_score | tojson }},
-    avg_speed:        {{ fastest.avg_speed        | tojson }},
-    coords:           {{ fastest.route_coordinates | tojson }},
-    steps:            {{ fastest.steps            | tojson }},
+    distance:      {{ fastest.distance         | tojson }},
+    duration:      {{ fastest.duration         | tojson }},
+    total_fuel:    {{ fastest.total_fuel       | tojson }},
+    idle_fuel:     {{ fastest.idle_fuel        | tojson }},
+    accel_fuel:    {{ fastest.accel_fuel       | tojson }},
+    cruise_fuel:   {{ fastest.cruise_fuel      | tojson }},
+    fuel_cost:     {{ fastest.fuel_cost        | tojson }},
+    co2_emissions: {{ fastest.co2_emissions    | tojson }},
+    avg_speed:     {{ fastest.avg_speed        | tojson }},
+    coords:        {{ fastest.route_coordinates | tojson }},
+    steps:         {{ fastest.steps            | tojson }},
   },
 };
 
@@ -479,126 +384,104 @@ const END_LAT   = {{ eco.end_lat   | tojson }};
 const END_LNG   = {{ eco.end_lng   | tojson }};
 const FUEL_TYPE = {{ fuel_type     | tojson }};
 
-// Seed tab subtitles
 (function() {
-  const e = ROUTES.eco, f = ROUTES.fastest;
-  const u = FUEL_TYPE === 'electric' ? 'kWh' : 'L';
+  const e = ROUTES.eco, f = ROUTES.fastest, u = FUEL_TYPE==='electric'?'kWh':'L';
   document.getElementById('eco-sub').textContent  = (e.total_fuel||'—')+' '+u+' · '+(e.distance||'—')+' km';
   document.getElementById('fast-sub').textContent = Math.round(f.duration||0)+' min · '+(f.distance||'—')+' km';
 })();
 
-// ── Map — satellite tiles ────────────────────────────────────────────────────
-const map = L.map('map', { zoomControl: true }).setView([START_LAT, START_LNG], 12);
+// Map
+const map = L.map('map',{zoomControl:true}).setView([START_LAT,START_LNG],12);
+L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{attribution:'Tiles © Esri',maxZoom:19}).addTo(map);
+L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_only_labels/{z}/{x}/{y}{r}.png',{attribution:'',maxZoom:19,opacity:0.8}).addTo(map);
 
-// Satellite (Esri World Imagery — clear, high contrast)
-L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-  attribution: 'Tiles © Esri',
-  maxZoom: 19,
-}).addTo(map);
-
-// Labels overlay on top of satellite so streets are readable
-L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_only_labels/{z}/{x}/{y}{r}.png', {
-  attribution: '',
-  maxZoom: 19,
-  opacity: 0.8,
-}).addTo(map);
-
-function pinIcon(bg, label) {
+function pinIcon(bg,label){
   return L.divIcon({
-    html:
-      '<div style="width:26px;height:26px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);' +
-      'background:'+bg+';border:2px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,0.5);' +
-      'display:flex;align-items:center;justify-content:center;">' +
-      '<span style="transform:rotate(45deg);font-family:monospace;font-size:10px;font-weight:700;color:#fff;">'+label+'</span>' +
-      '</div>',
-    iconSize:[26,26], iconAnchor:[13,26], popupAnchor:[0,-28], className:'',
+    html:'<div style="width:26px;height:26px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);background:'+bg+';border:2px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;"><span style="transform:rotate(45deg);font-family:monospace;font-size:10px;font-weight:700;color:#fff;">'+label+'</span></div>',
+    iconSize:[26,26],iconAnchor:[13,26],popupAnchor:[0,-28],className:''
   });
 }
 
-const startMarker = L.marker([START_LAT,START_LNG],{icon:pinIcon('#AECBD6','A')}).addTo(map).bindPopup('<b>{{ start | e }}</b>');
-const endMarker   = L.marker([END_LAT,  END_LNG],  {icon:pinIcon('#78A2CC','B')}).addTo(map).bindPopup('<b>{{ end | e }}</b>');
+L.marker([START_LAT,START_LNG],{icon:pinIcon('#AECBD6','A')}).addTo(map).bindPopup('<b>{{ start | e }}</b>');
+L.marker([END_LAT,END_LNG],    {icon:pinIcon('#78A2CC','B')}).addTo(map).bindPopup('<b>{{ end | e }}</b>');
+
+// Colors: eco = dark navy, fastest = mid sky blue
+const ECO_COL  = '#1A3A5C';
+const FAST_COL = '#78A2CC';
 
 const polylines = {};
 if (ROUTES.fastest.coords && ROUTES.fastest.coords.length)
-  polylines.fastest = L.polyline(ROUTES.fastest.coords, {color:'#ffffff', weight:3, opacity:0.45, dashArray:'7 5'}).addTo(map);
+  polylines.fastest = L.polyline(ROUTES.fastest.coords,{color:FAST_COL,weight:4,opacity:0.65,dashArray:'8 5'}).addTo(map);
 if (ROUTES.eco.coords && ROUTES.eco.coords.length)
-  polylines.eco = L.polyline(ROUTES.eco.coords, {color:'#78A2CC', weight:5, opacity:1}).addTo(map);
+  polylines.eco = L.polyline(ROUTES.eco.coords,{color:ECO_COL,weight:6,opacity:1}).addTo(map);
+if (polylines.eco) polylines.eco.bringToFront();
 
-function fitRoute(tag) {
-  const pts = ROUTES[tag].coords;
-  if (!pts||!pts.length) return;
-  try {
-    const b = L.featureGroup([L.polyline(pts),startMarker,endMarker]).getBounds();
-    if (b.isValid()) map.fitBounds(b.pad(0.1));
-  } catch(e) {}
+function fitRoute(tag){
+  const pts=ROUTES[tag].coords; if(!pts||!pts.length) return;
+  try{ const b=L.featureGroup([L.polyline(pts)]).getBounds(); if(b.isValid()) map.fitBounds(b.pad(0.12)); }catch(e){}
 }
 fitRoute('eco');
 
-// ── State ────────────────────────────────────────────────────────────────────
-let activeTag = 'eco', stepsOpen = false;
+let activeTag='eco', stepsOpen=false;
 
-function switchRoute(tag) {
-  activeTag = tag;
-  document.querySelectorAll('.rtab').forEach(b => b.classList.remove('active'));
+function switchRoute(tag){
+  activeTag=tag;
+  document.querySelectorAll('.rtab').forEach(b=>b.classList.remove('active'));
   document.getElementById('btn-'+tag).classList.add('active');
-
-  for (const t in polylines) {
-    if (t === tag) {
-      polylines[t].setStyle({color: tag==='eco' ? '#78A2CC' : '#ffffff', weight:5, opacity:1, dashArray:null});
+  // Flip sidebar + topbar theme
+  document.body.classList.toggle('fast-mode', tag === 'fastest');
+  for(const t in polylines){
+    if(t===tag){
+      polylines[t].setStyle({color:t==='eco'?ECO_COL:FAST_COL,weight:6,opacity:1,dashArray:null});
       polylines[t].bringToFront();
     } else {
-      polylines[t].setStyle({color:'#ffffff', weight:3, opacity:0.4, dashArray:'7 5'});
+      polylines[t].setStyle({color:t==='eco'?ECO_COL:FAST_COL,weight:3,opacity:0.4,dashArray:'8 5'});
     }
   }
   fitRoute(tag);
   updateMetrics(tag);
-  if (stepsOpen) renderSteps(tag);
+  if(stepsOpen) renderSteps(tag);
 }
 
-function set(id, v) { const el=document.getElementById(id); if (el) el.textContent=(v===null||v===undefined)?'—':v; }
+function set(id,v){const el=document.getElementById(id);if(el) el.textContent=(v==null)?'—':v;}
 
-function updateMetrics(tag) {
-  const r = ROUTES[tag]; if (!r) return;
-  set('effNum',     r.efficiency_score);
-  set('mDist',      r.distance);
-  set('mDur',       r.duration!=null ? Math.round(r.duration) : null);
-  set('mFuel',      r.total_fuel);
-  set('mCost',      r.fuel_cost!=null ? '$'+r.fuel_cost : null);
-  set('mCO2',       r.co2_emissions);
-  set('mSpeed',     r.avg_speed);
-  set('mFuelUnit',  FUEL_TYPE==='electric' ? 'kWh' : 'L');
-
-  const total = r.total_fuel || 0.001;
-  const u = FUEL_TYPE==='electric' ? ' kWh' : ' L';
-  set('fIdle',   (r.idle_fuel  ||0)+u);
-  set('fAccel',  (r.accel_fuel ||0)+u);
-  set('fCruise', (r.cruise_fuel||0)+u);
-  function pct(v) { return (Math.min(100,Math.max(0,((v||0)/total)*100)).toFixed(1))+'%'; }
-  const ib=document.getElementById('fIdleBar'),  ab=document.getElementById('fAccelBar'),  cb=document.getElementById('fCruiseBar');
+function updateMetrics(tag){
+  const r=ROUTES[tag]; if(!r) return;
+  set('mDist',  r.distance);
+  set('mDur',   r.duration!=null?Math.round(r.duration):null);
+  set('mFuel',  r.total_fuel);
+  set('mCost',  r.fuel_cost!=null?'$'+r.fuel_cost:null);
+  set('mCO2',   r.co2_emissions);
+  set('mSpeed', r.avg_speed);
+  set('mFuelUnit', FUEL_TYPE==='electric'?'kWh':'L');
+  const tot=r.total_fuel||0.001, u=FUEL_TYPE==='electric'?' kWh':' L';
+  set('fIdle',  (r.idle_fuel  ||0)+u);
+  set('fAccel', (r.accel_fuel ||0)+u);
+  set('fCruise',(r.cruise_fuel||0)+u);
+  function pct(v){return(Math.min(100,Math.max(0,((v||0)/tot)*100)).toFixed(1))+'%';}
+  const ib=document.getElementById('fIdleBar'),ab=document.getElementById('fAccelBar'),cb=document.getElementById('fCruiseBar');
   if(ib) ib.style.width=pct(r.idle_fuel);
   if(ab) ab.style.width=pct(r.accel_fuel);
   if(cb) cb.style.width=pct(r.cruise_fuel);
 }
 
-function renderSteps(tag) {
-  const steps=ROUTES[tag].steps||[], list=document.getElementById('stepList');
-  if(!list) return;
-  list.innerHTML='';
+function renderSteps(tag){
+  const steps=ROUTES[tag].steps||[],list=document.getElementById('stepList');
+  if(!list) return; list.innerHTML='';
   steps.forEach(function(s,i){
     const instr=(s&&typeof s==='object')?(s.instruction||''):String(s);
     const dist=(s&&s.distance)?s.distance+' km':'';
-    const dur =(s&&s.duration)?s.duration+' min':'';
+    const dur=(s&&s.duration)?s.duration+' min':'';
     const meta=[dist,dur].filter(Boolean).join(' · ');
-    const li=document.createElement('li');
-    li.className='step-item';
+    const li=document.createElement('li'); li.className='step-item';
     li.innerHTML='<span class="step-num">'+(i+1)+'</span><div><div class="step-text">'+esc(instr)+'</div>'+(meta?'<div class="step-meta">'+esc(meta)+'</div>':'')+'</div>';
     list.appendChild(li);
   });
 }
 
-function toggleSteps() {
+function toggleSteps(){
   stepsOpen=!stepsOpen;
-  const p=document.getElementById('stepsPanel'), b=document.getElementById('stepsBtn');
+  const p=document.getElementById('stepsPanel'),b=document.getElementById('stepsBtn');
   if(p) p.classList.toggle('open',stepsOpen);
   if(b) b.textContent=stepsOpen?'Hide directions ↑':'Show directions ↓';
   if(stepsOpen) renderSteps(activeTag);
