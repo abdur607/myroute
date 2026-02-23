@@ -423,13 +423,6 @@ def fuel_to_cost(fuel_l, specs):
     if ft=="diesel":   return round(fuel_l*PRICE_DIESEL,2)
     return round(fuel_l*PRICE_GASOLINE,2)
 
-def eff_score(fuel_l, dist_km, specs):
-    if dist_km<=0: return 50
-    cat=specs.get("category","sedan")
-    l100=fuel_l/dist_km*100
-    hwy=specs.get("hwy_l100km",CLASS_AVG_L100KM.get(cat,9)*0.75)
-    bad=CLASS_AVG_L100KM.get(cat,9)*2
-    return int(max(0,min(100,round(100*(bad-l100)/max(bad-hwy,0.01)))))
 
 def process_route(route, start_addr, end_addr, start_coords, end_coords,
                   specs, name, weather, style_factor):
@@ -465,8 +458,7 @@ def process_route(route, start_addr, end_addr, start_coords, end_coords,
             "fuel_cost":fuel_to_cost(total,specs),"co2_emissions":fuel_to_co2(total,specs),
             "steps":steps,"start_lat":start_coords[0],"start_lng":start_coords[1],
             "end_lat":end_coords[0],"end_lng":end_coords[1],
-            "route_coordinates":coords,"efficiency_score":eff_score(total,dist_km,specs),
-            "avg_speed":avg_sp,"cold_start_l":round(cs,3),"hvac_l":round(hv,3),
+            "route_coordinates":coords,"avg_speed":avg_sp,"cold_start_l":round(cs,3),"hvac_l":round(hv,3),
             "weather":weather}
 
 # ─── Mock fallback ────────────────────────────────────────────────────────────
@@ -484,7 +476,7 @@ def _mock(start_addr,end_addr,start_coords,end_coords,specs):
                      {"instruction":"Arrive at destination","distance":0,"duration":0}],
             "start_lat":start_coords[0],"start_lng":start_coords[1],
             "end_lat":end_coords[0],"end_lng":end_coords[1],
-            "route_coordinates":pts,"efficiency_score":50,"avg_speed":60.0,
+            "route_coordinates":pts,"avg_speed":60.0,
             "cold_start_l":0.0,"hvac_l":0.0,"weather":None}
 
 def _short_label(item):
@@ -587,7 +579,7 @@ def results():
         m["tag"]="eco"; mf["tag"]="fastest"; mf["name"]="Fastest Route"
         def _r(x): return {"name":x["name"],"tag":x["tag"],"distance":x["distance"],
                            "duration":x["duration"],"total_fuel":x["total_fuel"],
-                           "co2":x["co2_emissions"],"cost":x["fuel_cost"],"eff_score":x["efficiency_score"]}
+                           "co2":x["co2_emissions"],"cost":x["fuel_cost"]}
         return render_template("results.html",start=start_addr,end=end_addr,make=make,
             model=model,style=style,fuel_type=specs.get("fuel_type","gasoline"),specs=specs,
             eco=m,fastest=mf,comparison=[_r(m),_r(mf)],candidates_evaluated=1,
@@ -600,7 +592,7 @@ def results():
     scored=[]
     for i,raw in enumerate(unique):
         p=process_route(raw,start_addr,end_addr,sc,ec,specs,f"Route {i+1}",weather,sf)
-        print(f"  Route {i+1}: {p['distance']}km, {p['total_fuel']}L, score={p['efficiency_score']}")
+        print(f"  Route {i+1}: {p['distance']}km, {p['total_fuel']}L")
         scored.append(p)
 
     eco=min(scored,key=lambda x:x["total_fuel"])
@@ -615,7 +607,7 @@ def results():
 
     def row(r): return {"name":r["name"],"tag":r["tag"],"distance":r["distance"],
                         "duration":r["duration"],"total_fuel":r["total_fuel"],
-                        "co2":r["co2_emissions"],"cost":r["fuel_cost"],"eff_score":r["efficiency_score"]}
+                        "co2":r["co2_emissions"],"cost":r["fuel_cost"]}
 
     return render_template("results.html",start=start_addr,end=end_addr,make=make,
         model=model,style=style,fuel_type=specs.get("fuel_type","gasoline"),specs=specs,
