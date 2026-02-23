@@ -5,7 +5,6 @@ import concurrent.futures
 
 app = Flask(__name__)
 
-ORS_API_KEY  = "5b3ce3597851110001cf6248159698df886c401eb4c33836da4c121d"
 ORS_BASE_URL = "https://api.openrouteservice.org"
 
 # ─── Physical constants ───────────────────────────────────────────────────────
