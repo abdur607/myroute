@@ -30,20 +30,39 @@
 
     /* ── Top bar ── */
     .topbar {
-      height: 52px;
+      height: 58px;
       background: var(--panel-bg);
       border-bottom: 1px solid var(--panel-rule);
       display: flex; align-items: center; justify-content: space-between;
       padding: 0 32px;
     }
-    .tb-brand { font-family: 'Playfair Display', serif; font-size: 16px; font-weight: 700; color: var(--fast-line); text-decoration: none; }
+    .tb-brand { text-decoration: none; display: flex; align-items: center; height: 100%; }
+    .tb-brand-logo {
+      display: flex;
+      align-items: center;
+      gap: 0;
+    }
+    .tb-brand-wordmark {
+      font-family: 'Playfair Display', serif;
+      font-size: 35px;
+      line-height: 0.9;
+      font-style: italic;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      white-space: nowrap;
+    }
+    .tb-brand-wordmark .my { color: #fff; }
+    .tb-brand-wordmark .route {
+      color: #fff;
+      background: none;
+    }
     .tb-route { font-family: 'Courier Prime', monospace; font-size: 12px; color: var(--panel-ink3); display: flex; align-items: center; gap: 8px; }
     .tb-route strong { color: var(--panel-ink); font-weight: 700; }
     .tb-back { font-family: 'Courier Prime', monospace; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--panel-ink3); text-decoration: none; transition: color 0.15s; }
     .tb-back:hover { color: var(--fast-line); }
 
     /* ── Layout ── */
-    .layout { display: grid; grid-template-columns: 360px 1fr; height: calc(100vh - 52px); }
+    .layout { display: grid; grid-template-columns: 360px 1fr; height: calc(100vh - 58px); }
 
     /* ── Panel — transitions for theme switch ── */
     .panel, .topbar {
@@ -69,6 +88,8 @@
     body.fast-mode .tb-back:hover      { color: #fff; }
     body.fast-mode .tb-route           { color: rgba(255,255,255,0.65); }
     body.fast-mode .tb-route strong    { color: #fff; }
+    body.fast-mode .tb-brand-wordmark .my { color: #fff; }
+    body.fast-mode .tb-brand-wordmark .route { color: #fff; }
 
     body.fast-mode .route-tabs         { border-bottom-color: #6190BB; }
     body.fast-mode .rtab               { border-right-color: #6190BB; }
@@ -199,6 +220,8 @@
     #map { height: 100%; width: 100%; }
 
     @media (max-width: 960px) {
+      .topbar { height: 54px; padding: 0 16px; }
+      .tb-brand-wordmark { font-size: 33px; }
       .layout { grid-template-columns: 1fr; height: auto; }
       .panel { max-height: none; overflow-y: visible; }
       #map { height: 400px; }
@@ -209,7 +232,11 @@
 <body>
 
 <div class="topbar">
-  <a href="/" class="tb-brand">MyRoute</a>
+  <a href="/" class="tb-brand" aria-label="MyRoute home">
+    <div class="tb-brand-logo">
+      <div class="tb-brand-wordmark" aria-hidden="true"><span class="my">My</span><span class="route">Route</span></div>
+    </div>
+  </a>
   <div class="tb-route">
     <strong>{{ start }}</strong>
     <span>→</span>
